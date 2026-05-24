@@ -65,8 +65,10 @@
         .submit-btn {
             background: #0a3f6f; color: white; border: none; width: 100%; padding: 1rem; border-radius: 60px;
             font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 1rem;
+            transition: 0.2s;
         }
         .submit-btn:hover { background: #e94560; }
+        .submit-btn:disabled { background: #7f8c8d; cursor: not-allowed; }
         .back-link { display: block; text-align: center; margin-top: 1.5rem; color: #0a3f6f; text-decoration: none; }
         .row-2cols { display: flex; gap: 1rem; flex-wrap: wrap; }
         .row-2cols > * { flex: 1; }
@@ -162,6 +164,7 @@
 
     let selectedImage = null;
     let selectedProjectFiles = null;
+    const submitBtn = document.getElementById('submitBtn');
 
     // === ОБЛОЖКА ===
     const imageArea = document.getElementById('imageArea');
@@ -232,7 +235,7 @@
     };
 
     // === ОТПРАВКА ===
-    document.getElementById('submitBtn').onclick = async () => {
+    submitBtn.onclick = async () => {
         const title = document.getElementById('title').value.trim();
         const subject = document.getElementById('subject').value;
         const description = document.getElementById('desc').value.trim();
@@ -241,10 +244,13 @@
         if (!title) { alert('Введите название'); return; }
         if (!selectedProjectFiles || !selectedProjectFiles.length) { alert('Выберите файл или папку проекта'); return; }
 
+        // Блокируем кнопку и показываем загрузку
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Загрузка...';
+
         const projectId = Date.now().toString();
 
         try {
-            // Сохраняем файлы через IndexedDB
             await ProjectStorage.saveProjectFolder(projectId, selectedProjectFiles);
             
             // Получаем превью
@@ -270,7 +276,6 @@
                 }
             }
 
-            // Сохраняем метаданные
             const projects = ProjectStorage.getProjects();
             projects.push({
                 id: projectId,
@@ -289,16 +294,10 @@
         } catch (err) {
             console.error(err);
             alert('Ошибка: ' + err.message);
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🚀 Отправить на модерацию';
         }
     };
 </script>
-// В начало обработчика submitBtn добавь:
-const btn = document.getElementById('submitBtn');
-btn.disabled = true;
-btn.textContent = '⏳ Загрузка...';
-
-// В конце (после успеха или ошибки):
-btn.disabled = false;
-btn.textContent = '🚀 Отправить на модерацию';
 </body>
 </html>
