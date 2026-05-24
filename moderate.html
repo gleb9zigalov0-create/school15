@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модерация проектов | Школа №15</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui;
+            background: #b2e0fa;
+            padding: 2rem;
+        }
+        .glass {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 { color: #0a3f6f; margin-bottom: 0.5rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            background: rgba(255,255,255,0.6);
+            border-radius: 32px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        th { background: #0a3f6f; color: white; }
+        button {
+            background: #0a3f6f;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 40px;
+            cursor: pointer;
+            margin: 0 0.2rem;
+        }
+        button.danger { background: #e94560; }
+        button.approve { background: #2e7d64; }
+        .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: #0a3f6f;
+            text-decoration: none;
+        }
+        .file-list {
+            font-size: 0.7rem;
+            color: #555;
+            max-width: 200px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+<div class="glass">
+    <h1>🛡 Модерация проектов</h1>
+    <p>Введите пароль, чтобы загрузить список проектов.</p>
+    <input type="password" id="modPass" placeholder="Пароль">
+    <button id="loadBtn">Загрузить проекты</button>
+    <div id="projectsTable"></div>
+    <a href="index.html" class="back-link">← На главную</a>
+</div>
+<script src="js/project-storage.js"></script>
+<script>
+    const PASSWORD = "КИКИ99СССР";
+    let projects = [];
+
+    document.getElementById('loadBtn').onclick = async () => {
+        const pass = document.getElementById('modPass').value;
+        if (pass !== PASSWORD) {
+            alert('Неверный пароль!');
+            return;
+        }
+        projects = ProjectStorage.getProjects();
+        await renderTable();
+    };
+
+    async function renderTable() {
+        const container = document.getElementById('projectsTable');
+        if (!projects.length) {
+            container.innerHTML = '<p>Нет проектов для модерации.</p>';
+            return;
+        }
+        
+        let html = '<table><th>Название</th><th>Предмет</th><th>Описание</th><th>Файлы</th><th>Действия</th></tr>';
+        
+        for (let i = 0; i < projects.length; i++) {
+            const p = projects[i];
+            const files = await ProjectStorage.listProjectFiles(p.id);
+            const fileCount = files.length;
+            
+            html += `
+                <tr>
+                    <td>${escapeHtml(p.title)}</td>
+                    <td>${escapeHtml(p.subject || '—')}</td>
+                    <td>${escapeHtml(p.description?.substring(0, 50) || '—')}</td>
+                    <td class="file-list">
+                        ${fileCount} файл(ов)
+                        ${files.slice(0, 3).map(f => `<div>📄 ${escapeHtml(f.name)} (${ProjectStorage.formatSize(f.size)})</div>`).join('')}
+                        ${fileCount > 3 ? `<div>+ ещё ${fileCount - 3}</div>` : ''}
+                    </td>
+                    <td>
+                        <button class="approve" onclick="approveProject(${i})">✅ Одобрить</button>
+                        <button class="danger" onclick="rejectProject(${i})">❌ Отклонить</button>
+                        <button class="danger" onclick="deleteProject(${i})">🗑️ Удалить</button>
+                        <button onclick="downloadProject(${i})">📥 Скачать</button>
+                    </td>
+                </tr>
+            `;
+        }
+        html += '</table>';
+        container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, (m) => {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    window.approveProject = async (idx) => {
+        const proj = projects[idx];
+        proj.status = 'approved';
+        ProjectStorage.saveProjects(projects);
+        alert('Проект одобрен');
+        renderTable();
+    };
+
+    window.rejectProject = (idx) => {
+        projects.splice(idx, 1);
+        ProjectStorage.saveProjects(projects);
+        alert('Проект отклонён');
+        renderTable();
+    };
+
+    window.deleteProject = async (idx) => {
+        const proj = projects[idx];
+        await ProjectStorage.deleteProjectFiles(proj.id);
+        projects.splice(idx, 1);
+        ProjectStorage.saveProjects(projects);
+        alert('Проект удалён');
+        renderTable();
+    };
+
+    window.downloadProject = async (idx) => {
+        const proj = projects[idx];
+        const files = await ProjectStorage.listProjectFiles(proj.id);
+        if (files.length === 1) {
+            const record = await ProjectStorage.getFileRecord(proj.id, files[0].path);
+            if (record) ProjectStorage.downloadRecord(record);
+        } else if (files.length > 1) {
+            alert(`В проекте "${proj.title}" ${files.length} файлов. Скачать все сразу пока нельзя (будет ZIP позже).`);
+        } else {
+            alert('Нет файлов для скачивания');
+        }
+    };
+</script>
+</body>
+</html>
