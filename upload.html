@@ -292,5 +292,12 @@
         }
     };
 </script>
-</body>
+// В начало обработчика submitBtn добавь:
+const btn = document.getElementById('submitBtn');
+btn.disabled = true;
+btn.textContent = '⏳ Загрузка...';
+
+// В конце (после успеха или ошибки):
+btn.disabled = false;
+btn.textContent = '🚀 Отправить на модерацию';</body>
 </html>
