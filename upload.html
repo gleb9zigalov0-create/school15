@@ -46,11 +46,19 @@
             transition: 0.2s;
         }
         .upload-area:hover { background: rgba(255, 255, 255, 0.7); border-color: #0a3f6f; }
+        .upload-area.drag-over { background: rgba(10, 63, 111, 0.1); border-color: #0a3f6f; }
         .upload-icon { font-size: 2.5rem; }
-        .file-name { margin-top: 0.5rem; font-size: 0.8rem; color: #2c5a7a; }
+        .file-name { margin-top: 0.5rem; font-size: 0.8rem; color: #2c5a7a; word-break: break-all; }
         .image-preview {
-            width: 100px; height: 100px; background: rgba(255,255,255,0.6); border-radius: 20px;
-            display: flex; align-items: center; justify-content: center; overflow: hidden; margin-top: 1rem;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 0.5rem;
         }
         .image-preview img { width: 100%; height: 100%; object-fit: cover; }
         .color-preview { width: 60px; height: 60px; border-radius: 20px; border: 3px solid white; margin-top: 0.5rem; }
@@ -124,13 +132,13 @@
     </div>
 
     <div class="form-group">
-        <label>📦 Файл проекта (ZIP, PDF, DOCX и т.д.)</label>
+        <label>📦 Файл проекта (ZIP, папка, любой файл)</label>
         <div class="upload-area" id="projectArea">
             <div class="upload-icon">📦</div>
-            <div class="upload-text">Нажми или перетащи файл</div>
+            <div class="upload-text">Нажми или перетащи ZIP / папку / файл</div>
             <div class="file-name" id="projectName">Файл не выбран</div>
         </div>
-        <input type="file" id="projectFile" style="display:none">
+        <input type="file" id="projectFile" webkitdirectory directory multiple style="display:none">
     </div>
 
     <button class="submit-btn" id="submitBtn">🚀 Отправить на модерацию</button>
@@ -144,7 +152,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
     let selectedImage = null;
-    let selectedProjectFile = null;
+    let selectedProjectFiles = null;
     let storage;
 
     if (firebase && firebase.storage) {
@@ -158,11 +166,11 @@
     const imagePreview = document.getElementById('imagePreview');
 
     imageArea.onclick = () => imageFile.click();
-    imageArea.ondragover = (e) => { e.preventDefault(); imageArea.style.background = 'rgba(255,255,255,0.7)'; };
-    imageArea.ondragleave = () => imageArea.style.background = '';
+    imageArea.ondragover = (e) => { e.preventDefault(); imageArea.classList.add('drag-over'); };
+    imageArea.ondragleave = () => imageArea.classList.remove('drag-over');
     imageArea.ondrop = (e) => {
         e.preventDefault();
-        imageArea.style.background = '';
+        imageArea.classList.remove('drag-over');
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) handleImage(file);
         else alert('Перетащи картинку');
@@ -183,23 +191,36 @@
     const projectName = document.getElementById('projectName');
 
     projectArea.onclick = () => projectFile.click();
-    projectArea.ondragover = (e) => { e.preventDefault(); projectArea.style.background = 'rgba(255,255,255,0.7)'; };
-    projectArea.ondragleave = () => projectArea.style.background = '';
+    projectArea.ondragover = (e) => { e.preventDefault(); projectArea.classList.add('drag-over'); };
+    projectArea.ondragleave = () => projectArea.classList.remove('drag-over');
     projectArea.ondrop = (e) => {
         e.preventDefault();
-        projectArea.style.background = '';
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            selectedProjectFile = file;
-            projectName.textContent = file.name;
+        projectArea.classList.remove('drag-over');
+        const items = e.dataTransfer.items;
+        if (items && items.length) {
+            const entry = items[0].webkitGetAsEntry();
+            if (entry && entry.isDirectory) {
+                alert('Папки через drag&drop пока не поддерживаются. Используй кнопку.');
+                return;
+            }
+        }
+        const files = e.dataTransfer.files;
+        if (files.length) {
+            selectedProjectFiles = files;
+            updateProjectName(files);
         }
     };
     projectFile.onchange = (e) => {
-        if (e.target.files[0]) {
-            selectedProjectFile = e.target.files[0];
-            projectName.textContent = e.target.files[0].name;
+        if (e.target.files.length) {
+            selectedProjectFiles = e.target.files;
+            updateProjectName(e.target.files);
         }
     };
+
+    function updateProjectName(files) {
+        if (files.length === 1) projectName.textContent = files[0].name;
+        else projectName.textContent = `📁 Папка (${files.length} файлов)`;
+    }
 
     // === ЦВЕТ ===
     document.getElementById('color').oninput = (e) => {
@@ -214,15 +235,23 @@
         const color = document.getElementById('color').value;
 
         if (!title) { alert('Введите название'); return; }
-        if (!selectedProjectFile) { alert('Выберите файл проекта'); return; }
+        if (!selectedProjectFiles || !selectedProjectFiles.length) { alert('Выберите файл или папку проекта'); return; }
         if (!storage) { alert('Firebase Storage не инициализирован'); return; }
 
         const projectId = Date.now().toString();
 
         try {
+            // Если это папка (много файлов) — загружаем всё в ZIP (пока загружаем первый файл)
+            // Для простоты: если файлов много, берём первый файл и говорим, что нужно загружать ZIP
+            let fileToUpload = selectedProjectFiles[0];
+            if (selectedProjectFiles.length > 1) {
+                alert('Пока поддерживается загрузка только одного файла (ZIP или любого файла). Папки нужно архивировать.');
+                return;
+            }
+
             // Загружаем файл в Storage
-            const fileRef = storage.ref().child(`projects/${projectId}/${selectedProjectFile.name}`);
-            await fileRef.put(selectedProjectFile);
+            const fileRef = storage.ref().child(`projects/${projectId}/${fileToUpload.name}`);
+            await fileRef.put(fileToUpload);
             const fileUrl = await fileRef.getDownloadURL();
 
             // Получаем превью
@@ -234,12 +263,12 @@
                     reader.onerror = () => res(null);
                     reader.readAsDataURL(selectedImage);
                 });
-            } else if (selectedProjectFile.type.startsWith('image/')) {
+            } else if (fileToUpload.type.startsWith('image/')) {
                 thumb = await new Promise(res => {
                     const reader = new FileReader();
                     reader.onload = (e) => res(e.target.result);
                     reader.onerror = () => res(null);
-                    reader.readAsDataURL(selectedProjectFile);
+                    reader.readAsDataURL(fileToUpload);
                 });
             }
 
@@ -253,8 +282,8 @@
                 color: color,
                 thumb: thumb,
                 fileUrl: fileUrl,
-                fileName: selectedProjectFile.name,
-                fileSize: selectedProjectFile.size,
+                fileName: fileToUpload.name,
+                fileSize: fileToUpload.size,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             });
