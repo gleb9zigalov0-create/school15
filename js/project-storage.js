@@ -113,7 +113,6 @@ const ProjectStorage = (function () {
         if (index !== -1) {
             projects[index].status = 'approved';
             saveProjects(projects);
-            console.log('Проект одобрен:', projects[index].title);
         }
     }
 
