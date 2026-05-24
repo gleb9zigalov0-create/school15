@@ -66,14 +66,17 @@
     </style>
 </head>
 <body>
-
 <div class="glass-moderate">
     <h1>🛡 Панель модерации</h1>
     <div class="sub">Проверь проект перед публикацией</div>
     <div id="moderatorContent"></div>
     <a href="index.html" class="back-link">← На главную</a>
 </div>
-
+<script src="js/firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="js/project-storage.js"></script>
 <script>
     let projects = [];
@@ -84,7 +87,8 @@
     }
 
     async function loadProjects() {
-        projects = ProjectStorage.getProjects().filter(p => p.status !== 'approved');
+        const allProjects = ProjectStorage.getProjects();
+        projects = allProjects.filter(p => p.status !== 'approved');
         if (projects.length === 0) {
             document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации.</div>';
             return;
@@ -101,7 +105,7 @@
         
         let filesHtml = '';
         if (files.length === 0) {
-            filesHtml = '<div style="color:#e94560;">⚠️ Файлы не найдены! Возможно, загрузка не удалась.</div>';
+            filesHtml = '<div style="color:#e94560;">⚠️ Файлы не найдены!</div>';
         } else {
             filesHtml = files.map(f => `
                 <div class="file-item">
