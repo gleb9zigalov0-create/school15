@@ -42,7 +42,7 @@
         .card-image { height: 160px; background-size: cover; background-position: center; background-color: #cce8f5; }
         .card-info { padding: 1rem; text-align: center; }
         .card-info h3 { font-size: 1.3rem; margin-bottom: 0.3rem; color: #0a3f6f; }
-        .type-badge { display: inline-block; background: rgba(10, 63, 111, 0.2); padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-bottom: 0.5rem; color: #0a3f6f; }
+        .subject-badge { display: inline-block; background: rgba(10, 63, 111, 0.2); padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-bottom: 0.5rem; color: #0a3f6f; }
         .card-info p { font-size: 0.85rem; color: #2c5a7a; margin-top: 0.5rem; }
         .empty-msg { text-align: center; padding: 3rem; background: rgba(255, 255, 255, 0.5); border-radius: 40px; width: 100%; color: #0a3f6f; }
         .back-btn { display: inline-block; margin-top: 1.5rem; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(8px); padding: 0.6rem 1.5rem; border-radius: 40px; text-decoration: none; color: #0a3f6f; font-weight: bold; transition: 0.2s; border: 1px solid rgba(255,255,255,0.5); }
@@ -70,16 +70,6 @@
 </div>
 <script src="js/project-storage.js"></script>
 <script>
-    // Удаляем старые демо-проекты при первом запуске
-    (function cleanDemoProjects() {
-        const oldProjects = ProjectStorage.getProjects();
-        if (oldProjects.some(p => p.title === "Робот-помощник" || p.title === "Экология Тыргана")) {
-            localStorage.removeItem('school15_projects');
-            indexedDB.deleteDatabase('school15_projects_db');
-            location.reload();
-        }
-    })();
-
     let projects = [];
 
     function loadProjects() {
@@ -95,9 +85,9 @@
         }
         grid.innerHTML = projects.map(proj => `
             <div class="project-card" data-id="${proj.id}" onclick="viewProject('${proj.id}')">
-                <div class="card-image" style="background-image: url('${proj.thumb || 'https://placehold.co/300x160/8fc9e8/white?text=Нет+фото'}'); background-size: cover; background-position: center;"></div>
+                <div class="card-image" style="background-image: url('${proj.thumb || proj.image || 'https://placehold.co/300x160/8fc9e8/white?text=Нет+фото'}'); background-size: cover; background-position: center;"></div>
                 <div class="card-info">
-                    <div class="type-badge">${escapeHtml(proj.type || 'Проект')}</div>
+                    <div class="subject-badge">${escapeHtml(proj.subject || 'Проект')}</div>
                     <h3>${escapeHtml(proj.title)}</h3>
                     <p>${escapeHtml(proj.description?.substring(0, 70) || '')}${proj.description?.length > 70 ? '...' : ''}</p>
                 </div>
@@ -125,7 +115,7 @@
         } else if (files.length > 1) {
             alert(`В проекте "${proj.title}" несколько файлов. Для скачивания всех пока нужно сделать ZIP (в разработке).`);
         } else {
-            alert(`📁 ${proj.title}\nТип: ${proj.type || 'Проект'}\nОписание: ${proj.description || '—'}\nФайлы: не загружены.`);
+            alert(`📁 ${proj.title}\nПредмет: ${proj.subject || '—'}\nОписание: ${proj.description || '—'}\nФайлы: не загружены.`);
         }
     }
 
