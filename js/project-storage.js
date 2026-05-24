@@ -33,7 +33,10 @@ const ProjectStorage = (function () {
         localStorage.setItem(META_KEY, JSON.stringify(list));
     }
 
-    async function saveProjectFiles(projectId, files) {
+    async function saveProjectFolder(projectId, fileList) {
+        const files = Array.from(fileList);
+        if (!files.length) throw new Error('Нет файлов');
+        
         const db = await openDB();
         
         for (const file of files) {
@@ -43,10 +46,10 @@ const ProjectStorage = (function () {
                 reader.readAsArrayBuffer(file);
             });
             
-            // Отдельная транзакция для каждого файла
+            const tx = db.transaction(STORE, 'readwrite');
+            const store = tx.objectStore(STORE);
+            
             await new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE, 'readwrite');
-                const store = tx.objectStore(STORE);
                 const req = store.put({
                     key: key(projectId, file.name),
                     projectId,
@@ -61,10 +64,10 @@ const ProjectStorage = (function () {
             });
         }
         
-        return { count: files.length };
+        return { fileCount: files.length };
     }
 
-    async function getProjectFiles(projectId) {
+    async function listProjectFiles(projectId) {
         const db = await openDB();
         const tx = db.transaction(STORE, 'readonly');
         const store = tx.objectStore(STORE);
@@ -77,37 +80,29 @@ const ProjectStorage = (function () {
         return all.filter(r => r.projectId === projectId);
     }
 
-    async function downloadProject(projectId) {
-        const files = await getProjectFiles(projectId);
-        if (!files.length) return alert('Файлы не найдены');
+    async function getFileRecord(projectId, fileName) {
+        const db = await openDB();
+        const tx = db.transaction(STORE, 'readonly');
+        const store = tx.objectStore(STORE);
         
-        const file = files[0];
-        const blob = new Blob([file.data], { type: file.type });
+        return new Promise((resolve) => {
+            const req = store.get(key(projectId, fileName));
+            req.onsuccess = () => resolve(req.result);
+        });
+    }
+
+    function downloadRecord(record) {
+        if (!record || !record.data) {
+            alert('Файл не найден');
+            return;
+        }
+        const blob = new Blob([record.data], { type: record.type });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = file.name;
+        a.download = record.name;
         a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-    }
-
-    async function deleteProject(projectId) {
-        const files = await getProjectFiles(projectId);
-        const db = await openDB();
-        
-        for (const file of files) {
-            await new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE, 'readwrite');
-                const store = tx.objectStore(STORE);
-                const req = store.delete(key(projectId, file.name));
-                req.onerror = () => reject(req.error);
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            });
-        }
-        
-        const projects = getProjects().filter(p => p.id !== projectId);
-        saveProjects(projects);
+        setTimeout(() => URL.revokeObjectURL(url), 500);
     }
 
     function formatSize(bytes) {
@@ -119,10 +114,10 @@ const ProjectStorage = (function () {
     return {
         getProjects,
         saveProjects,
-        saveProjectFiles,
-        getProjectFiles,
-        downloadProject,
-        deleteProject,
+        saveProjectFolder,
+        listProjectFiles,
+        getFileRecord,
+        downloadRecord,
         formatSize
     };
 })();
