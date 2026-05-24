@@ -231,7 +231,6 @@
         const projectId = Date.now().toString();
 
         try {
-            // ПРАВИЛЬНОЕ НАЗВАНИЕ ФУНКЦИИ
             await ProjectStorage.saveProjectFolder(projectId, selectedProjectFiles);
             
             let thumb = null;
@@ -244,6 +243,7 @@
                 });
             }
 
+            // ✅ ДОБАВЛЯЕМ новый проект в список, а не заменяем
             const projects = ProjectStorage.getProjects();
             projects.push({
                 id: projectId,
