@@ -145,8 +145,21 @@
     <a href="projects.html" class="back-link">← Назад к проектам</a>
 </div>
 
+<script src="js/firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/project-storage.js"></script>
 <script>
+    // Инициализация Firebase
+    if (typeof firebaseConfig !== 'undefined') {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    } else {
+        alert('Firebase не настроен. Проверь файл firebase-config.js');
+    }
+
     let selectedImage = null;
     let selectedProjectFiles = null;
 
@@ -244,7 +257,6 @@
                     reader.readAsDataURL(selectedImage);
                 });
             } else {
-                // Ищем первую картинку среди файлов проекта
                 for (let i = 0; i < selectedProjectFiles.length; i++) {
                     if (selectedProjectFiles[i].type.startsWith('image/')) {
                         thumb = await new Promise(res => {
