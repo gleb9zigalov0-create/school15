@@ -174,7 +174,7 @@
             outline: none;
         }
 
-        /* ========== МОДАЛКИ ========== */
+        /* МОДАЛКИ */
         .modal-wrapper {
             position: absolute;
             bottom: 80px;
@@ -399,7 +399,6 @@
             <button class="close-btn" id="stickerModalCloseBtn">Закрыть</button>
         `;
         
-        // Загружаем стикеры
         const stickers = ['stickers/okay.gif'];
         const stickerContainer = document.getElementById('stickerList');
         if (stickerContainer) {
@@ -560,71 +559,5 @@
     
     document.getElementById('settingsBtn').onclick = () => window.location.href = 'settings.html';
 </script>
-<!-- Кнопка скрепки уже есть в панели, но если нет — добавь в .input-panel -->
-<!-- Модалка скрепки -->
-<div id="attachModal" class="modal attach-modal" style="display: none;">
-    <div class="modal-sheet">
-        <div class="modal-handle" id="attachHandle"></div>
-        <div class="modal-content-inner">
-            <div class="modal-title">📎 Отправить</div>
-            <div class="attach-grid">
-                <div class="attach-item" data-type="photo">
-                    <div class="attach-icon">📷</div>
-                    <div class="attach-label">Фото</div>
-                </div>
-                <div class="attach-item" data-type="video">
-                    <div class="attach-icon">🎥</div>
-                    <div class="attach-label">Видео</div>
-                </div>
-                <div class="attach-item" data-type="file">
-                    <div class="attach-icon">📄</div>
-                    <div class="attach-label">Файл</div>
-                </div>
-                <div class="attach-item" data-type="poll">
-                    <div class="attach-icon">📊</div>
-                    <div class="attach-label">Опрос</div>
-                </div>
-                <div class="attach-item" data-type="voice">
-                    <div class="attach-icon">🎤</div>
-                    <div class="attach-label">Голос</div>
-                </div>
-                <div class="attach-item" data-type="link">
-                    <div class="attach-icon">🔗</div>
-                    <div class="attach-label">Ссылка</div>
-                </div>
-            </div>
-            <button class="close-btn" id="closeAttachBtn">Закрыть</button>
-        </div>
-    </div>
-</div>
-
-<script src="js/attach.js"></script>
-<script>
-    // Инициализация скрепки после загрузки страницы
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof AttachManager !== 'undefined') {
-            AttachManager.init();
-            
-            // Обработчики кликов по элементам скрепки
-            document.querySelectorAll('.attach-item').forEach(item => {
-                item.onclick = () => {
-                    const type = item.dataset.type;
-                    AttachManager.handleAction(type);
-                };
-            });
-            
-            // Закрытие по кнопке
-            const closeBtn = document.getElementById('closeAttachBtn');
-            if (closeBtn) {
-                closeBtn.onclick = () => AttachManager.closeModal();
-            }
-            
-            // Закрытие по серой полоске
-            const handle = document.getElementById('attachHandle');
-            if (handle) {
-                handle.onclick = () => AttachManager.closeModal();
-            }
-        }
-    });
-</script></body>
+</body>
 </html>
