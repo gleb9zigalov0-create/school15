@@ -65,7 +65,6 @@
         .submit-btn {
             background: #0a3f6f; color: white; border: none; width: 100%; padding: 1rem; border-radius: 60px;
             font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 1rem;
-            transition: 0.2s;
         }
         .submit-btn:hover { background: #e94560; }
         .submit-btn:disabled { background: #7f8c8d; cursor: not-allowed; }
@@ -134,13 +133,13 @@
     </div>
 
     <div class="form-group">
-        <label>📦 Файл проекта (ZIP, папка, любой файл)</label>
+        <label>📦 Файл проекта (ZIP или любой файл)</label>
         <div class="upload-area" id="projectArea">
             <div class="upload-icon">📦</div>
-            <div class="upload-text">Нажми или перетащи ZIP / папку / файл</div>
+            <div class="upload-text">Нажми или перетащи ZIP / файл</div>
             <div class="file-name" id="projectName">Файл не выбран</div>
         </div>
-        <input type="file" id="projectFile" webkitdirectory directory multiple style="display:none">
+        <input type="file" id="projectFile" style="display:none">
     </div>
 
     <button class="submit-btn" id="submitBtn">🚀 Отправить на модерацию</button>
@@ -151,6 +150,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="js/project-storage.js"></script>
 <script>
     // Инициализация Firebase
@@ -163,7 +163,7 @@
     }
 
     let selectedImage = null;
-    let selectedProjectFiles = null;
+    let selectedProjectFile = null;
     const submitBtn = document.getElementById('submitBtn');
 
     // === ОБЛОЖКА ===
@@ -203,31 +203,18 @@
     projectArea.ondrop = (e) => {
         e.preventDefault();
         projectArea.classList.remove('drag-over');
-        const items = e.dataTransfer.items;
-        if (items && items.length) {
-            const entry = items[0].webkitGetAsEntry();
-            if (entry && entry.isDirectory) {
-                alert('Папки через drag&drop пока не поддерживаются. Используй кнопку.');
-                return;
-            }
-        }
-        const files = e.dataTransfer.files;
-        if (files.length) {
-            selectedProjectFiles = files;
-            updateProjectName(files);
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            selectedProjectFile = file;
+            projectName.textContent = file.name;
         }
     };
     projectFile.onchange = (e) => {
-        if (e.target.files.length) {
-            selectedProjectFiles = e.target.files;
-            updateProjectName(e.target.files);
+        if (e.target.files[0]) {
+            selectedProjectFile = e.target.files[0];
+            projectName.textContent = e.target.files[0].name;
         }
     };
-
-    function updateProjectName(files) {
-        if (files.length === 1) projectName.textContent = files[0].name;
-        else projectName.textContent = `📁 Папка (${files.length} файлов)`;
-    }
 
     // === ЦВЕТ ===
     document.getElementById('color').oninput = (e) => {
@@ -242,16 +229,16 @@
         const color = document.getElementById('color').value;
 
         if (!title) { alert('Введите название'); return; }
-        if (!selectedProjectFiles || !selectedProjectFiles.length) { alert('Выберите файл или папку проекта'); return; }
+        if (!selectedProjectFile) { alert('Выберите файл проекта (ZIP или любой файл)'); return; }
 
-        // Блокируем кнопку и показываем загрузку
         submitBtn.disabled = true;
         submitBtn.textContent = '⏳ Загрузка...';
 
         const projectId = Date.now().toString();
 
         try {
-            await ProjectStorage.saveProjectFolder(projectId, selectedProjectFiles);
+            // Сохраняем файл в Storage
+            const result = await ProjectStorage.saveProjectFolder(projectId, [selectedProjectFile]);
             
             // Получаем превью
             let thumb = null;
@@ -262,18 +249,13 @@
                     reader.onerror = () => res(null);
                     reader.readAsDataURL(selectedImage);
                 });
-            } else {
-                for (let i = 0; i < selectedProjectFiles.length; i++) {
-                    if (selectedProjectFiles[i].type.startsWith('image/')) {
-                        thumb = await new Promise(res => {
-                            const reader = new FileReader();
-                            reader.onload = (e) => res(e.target.result);
-                            reader.onerror = () => res(null);
-                            reader.readAsDataURL(selectedProjectFiles[i]);
-                        });
-                        break;
-                    }
-                }
+            } else if (selectedProjectFile.type.startsWith('image/')) {
+                thumb = await new Promise(res => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => res(e.target.result);
+                    reader.onerror = () => res(null);
+                    reader.readAsDataURL(selectedProjectFile);
+                });
             }
 
             const projects = ProjectStorage.getProjects();
@@ -284,6 +266,7 @@
                 description: description,
                 color: color,
                 thumb: thumb,
+                files: result.files,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             });
