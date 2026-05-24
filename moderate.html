@@ -6,20 +6,13 @@
     <title>Модерация | Школа №15</title>
     <link rel="stylesheet" href="common.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(145deg, #b0dff5 0%, #cceef8 50%, #b8e4fa 100%);
             min-height: 100vh;
             padding: 2rem;
         }
-
-        /* СТЕКЛЯННЫЙ КОНТЕЙНЕР */
         .glass-moderate {
             max-width: 1200px;
             margin: 0 auto;
@@ -30,76 +23,23 @@
             box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
-
-        h1 {
-            text-align: center;
-            color: #0a3f6f;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sub {
-            text-align: center;
-            color: #2c5a7a;
-            margin-bottom: 2rem;
-        }
-
-        /* НАВИГАЦИЯ МЕЖДУ ПРОЕКТАМИ */
-        .nav-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .counter {
-            background: rgba(10, 63, 111, 0.8);
-            color: white;
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-
-        .nav-btn {
-            background: rgba(10, 63, 111, 0.7);
-            backdrop-filter: blur(8px);
-            border: none;
-            color: white;
-            width: 100px;
-            padding: 0.5rem;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .nav-btn:hover {
-            background: #0a3f6f;
-            transform: scale(1.02);
-        }
-
-        /* КАРТОЧКА ПРОЕКТА (ПОЛНЫЙ ПРОСМОТР) */
+        h1 { text-align: center; color: #0a3f6f; font-size: 2rem; margin-bottom: 0.5rem; }
+        .sub { text-align: center; color: #2c5a7a; margin-bottom: 2rem; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; }
+        .counter { background: rgba(10, 63, 111, 0.8); color: white; padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.9rem; }
+        .nav-btn { background: rgba(10, 63, 111, 0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer; }
         .project-card-full {
             background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(16px);
             border-radius: 48px;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
-            transition: 0.3s;
         }
-
         .project-header {
             position: relative;
             height: 220px;
             background-size: cover;
             background-position: center;
-            background-color: #cce8f5;
         }
-
         .project-header .overlay {
             position: absolute;
             bottom: 0;
@@ -108,127 +48,21 @@
             background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
             padding: 1rem;
         }
-
-        .project-header h2 {
-            color: white;
-            font-size: 1.8rem;
-            margin: 0;
-        }
-
-        .project-details {
-            padding: 1.5rem;
-        }
-
-        .info-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-badge {
-            background: rgba(10, 63, 111, 0.15);
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            color: #0a3f6f;
-            font-weight: 500;
-        }
-
-        .color-preview {
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .description {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 28px;
-            padding: 1rem;
-            margin: 1rem 0;
-            color: #1e2f3e;
-            line-height: 1.4;
-        }
-
-        .files-list {
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 28px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-
-        .files-list h4 {
-            color: #0a3f6f;
-            margin-bottom: 0.5rem;
-        }
-
-        .file-item {
-            padding: 0.3rem 0;
-            font-size: 0.8rem;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 1.5rem;
-        }
-
-        .btn-approve {
-            background: #2e7d64;
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 60px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-reject {
-            background: #e94560;
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 60px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-approve:hover, .btn-reject:hover {
-            transform: scale(1.02);
-            filter: brightness(1.05);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            background: rgba(255,255,255,0.5);
-            border-radius: 48px;
-            color: #0a3f6f;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 2rem;
-            text-align: center;
-            width: 100%;
-            color: #0a3f6f;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        @media (max-width: 700px) {
-            body { padding: 1rem; }
-            .project-header h2 { font-size: 1.2rem; }
-        }
+        .project-header h2 { color: white; font-size: 1.8rem; }
+        .project-details { padding: 1.5rem; }
+        .info-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; align-items: center; }
+        .info-badge { background: rgba(10, 63, 111, 0.15); padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.85rem; color: #0a3f6f; }
+        .color-preview { width: 40px; height: 40px; border-radius: 20px; border: 2px solid white; }
+        .description { background: rgba(255, 255, 255, 0.6); border-radius: 28px; padding: 1rem; margin: 1rem 0; }
+        .files-list { background: rgba(255, 255, 255, 0.4); border-radius: 28px; padding: 1rem; margin: 1rem 0; }
+        .file-item { padding: 0.5rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .download-btn { background: #0a3f6f; color: white; border: none; padding: 0.3rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+        .action-buttons { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+        .btn-approve { background: #2e7d64; color: white; padding: 0.8rem 2rem; border-radius: 60px; border: none; cursor: pointer; }
+        .btn-reject { background: #e94560; color: white; padding: 0.8rem 2rem; border-radius: 60px; border: none; cursor: pointer; }
+        .empty-state { text-align: center; padding: 3rem; background: rgba(255,255,255,0.5); border-radius: 48px; }
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #0a3f6f; text-decoration: none; }
+        @media (max-width: 700px) { .project-header h2 { font-size: 1.2rem; } }
     </style>
 </head>
 <body>
@@ -236,11 +70,7 @@
 <div class="glass-moderate">
     <h1>🛡 Панель модерации</h1>
     <div class="sub">Проверь проект перед публикацией</div>
-
-    <div id="moderatorContent">
-        <!-- сюда загрузится список проектов -->
-    </div>
-
+    <div id="moderatorContent"></div>
     <a href="index.html" class="back-link">← На главную</a>
 </div>
 
@@ -249,7 +79,6 @@
     let projects = [];
     let currentIndex = 0;
 
-    // Проверяем, авторизован ли модератор (на главной)
     if (localStorage.getItem('moderator_mode') !== 'true') {
         window.location.href = 'index.html';
     }
@@ -257,7 +86,7 @@
     async function loadProjects() {
         projects = ProjectStorage.getProjects().filter(p => p.status !== 'approved');
         if (projects.length === 0) {
-            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации. Все проверены!</div>';
+            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации.</div>';
             return;
         }
         currentIndex = 0;
@@ -270,6 +99,18 @@
 
         const files = await ProjectStorage.listProjectFiles(project.id);
         
+        let filesHtml = '';
+        if (files.length === 0) {
+            filesHtml = '<div style="color:#e94560;">⚠️ Файлы не найдены! Возможно, загрузка не удалась.</div>';
+        } else {
+            filesHtml = files.map(f => `
+                <div class="file-item">
+                    <span>📄 ${escapeHtml(f.name)} (${ProjectStorage.formatSize(f.size)})</span>
+                    <button class="download-btn" onclick="downloadFile('${project.id}', '${escapeAttr(f.name)}')">📥 Скачать</button>
+                </div>
+            `).join('');
+        }
+
         const html = `
             <div class="nav-bar">
                 <button class="nav-btn" id="prevBtn" ${currentIndex === 0 ? 'disabled style="opacity:0.5"' : ''}>← Назад</button>
@@ -278,32 +119,21 @@
             </div>
             <div class="project-card-full">
                 <div class="project-header" style="background-image: url('${project.thumb || project.image || 'https://placehold.co/600x300/8fc9e8/white?text=Нет+обложки'}');">
-                    <div class="overlay">
-                        <h2>${escapeHtml(project.title)}</h2>
-                    </div>
+                    <div class="overlay"><h2>${escapeHtml(project.title)}</h2></div>
                 </div>
                 <div class="project-details">
                     <div class="info-row">
                         <span class="info-badge">📚 ${escapeHtml(project.subject || 'Без предмета')}</span>
                         <div class="color-preview" style="background: ${project.color || '#cce8f5'};"></div>
                     </div>
-                    <div class="description">
-                        <strong>📝 Описание:</strong><br>
-                        ${escapeHtml(project.description || '—')}
-                    </div>
+                    <div class="description"><strong>📝 Описание:</strong><br>${escapeHtml(project.description || '—')}</div>
                     <div class="files-list">
                         <h4>📁 Файлы проекта (${files.length})</h4>
-                        ${files.map(f => `
-                            <div class="file-item">
-                                <span>📄 ${escapeHtml(f.name)}</span>
-                                <span style="font-size:0.7rem; color:#0a3f6f;">${ProjectStorage.formatSize(f.size)}</span>
-                            </div>
-                        `).join('')}
-                        ${files.length === 0 ? '<div style="color:#999;">Файлы не загружены</div>' : ''}
+                        ${filesHtml}
                     </div>
                     <div class="action-buttons">
-                        <button class="btn-approve" onclick="approveProject()">✅ Одобрить и опубликовать</button>
-                        <button class="btn-reject" onclick="rejectProject()">❌ Отклонить и удалить</button>
+                        <button class="btn-approve" onclick="approveProject()">✅ Одобрить</button>
+                        <button class="btn-reject" onclick="rejectProject()">❌ Отклонить</button>
                     </div>
                 </div>
             </div>
@@ -311,30 +141,26 @@
         
         document.getElementById('moderatorContent').innerHTML = html;
         
-        // Навигация
-        document.getElementById('prevBtn')?.addEventListener('click', () => {
-            if (currentIndex > 0) {
-                currentIndex--;
-                renderCurrentProject();
-            }
-        });
-        document.getElementById('nextBtn')?.addEventListener('click', () => {
-            if (currentIndex < projects.length - 1) {
-                currentIndex++;
-                renderCurrentProject();
-            }
-        });
+        document.getElementById('prevBtn')?.addEventListener('click', () => { if (currentIndex > 0) { currentIndex--; renderCurrentProject(); } });
+        document.getElementById('nextBtn')?.addEventListener('click', () => { if (currentIndex < projects.length - 1) { currentIndex++; renderCurrentProject(); } });
     }
+
+    window.downloadFile = async (projectId, fileName) => {
+        const record = await ProjectStorage.getFileRecord(projectId, fileName);
+        if (record) {
+            ProjectStorage.downloadRecord(record);
+        } else {
+            alert('Не удалось найти файл для скачивания');
+        }
+    };
 
     window.approveProject = async () => {
         const proj = projects[currentIndex];
         proj.status = 'approved';
         ProjectStorage.saveProjects(projects);
-        
-        // Обновляем список
         projects = projects.filter(p => p.status !== 'approved');
         if (projects.length === 0) {
-            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации. Все проверены!</div>';
+            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации.</div>';
         } else {
             currentIndex = Math.min(currentIndex, projects.length - 1);
             renderCurrentProject();
@@ -344,13 +170,12 @@
 
     window.rejectProject = async () => {
         const proj = projects[currentIndex];
-        if (confirm(`Точно удалить проект "${proj.title}"?`)) {
+        if (confirm(`Удалить проект "${proj.title}"?`)) {
             await ProjectStorage.deleteProjectFiles(proj.id);
             projects.splice(currentIndex, 1);
             ProjectStorage.saveProjects(projects);
-            
             if (projects.length === 0) {
-                document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации. Все проверены!</div>';
+                document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации.</div>';
             } else {
                 if (currentIndex >= projects.length) currentIndex = projects.length - 1;
                 renderCurrentProject();
@@ -361,12 +186,12 @@
 
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, (m) => {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str.replace(/[&<>]/g, (m) => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+
+    function escapeAttr(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     loadProjects();
