@@ -142,10 +142,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
-<script src="js/project-storage.js"></script>
 <script>
     let selectedImage = null;
     let selectedProjectFile = null;
+    let storage;
+
+    // Инициализация Storage
+    if (firebase && firebase.storage) {
+        storage = firebase.storage();
+    }
 
     // Обложка
     const imageArea = document.getElementById('imageArea');
@@ -209,13 +214,16 @@
 
         if (!title) { alert('Введите название'); return; }
         if (!selectedProjectFile) { alert('Выберите файл проекта'); return; }
+        if (!storage) { alert('Firebase Storage не инициализирован'); return; }
 
         const projectId = Date.now().toString();
 
         try {
             // Загружаем файл в Storage
-            const result = await ProjectStorage.saveProjectFolder(projectId, [selectedProjectFile]);
-            
+            const fileRef = storage.ref().child(`projects/${projectId}/${selectedProjectFile.name}`);
+            await fileRef.put(selectedProjectFile);
+            const fileUrl = await fileRef.getDownloadURL();
+
             // Получаем превью
             let thumb = null;
             if (selectedImage) {
@@ -234,7 +242,8 @@
                 });
             }
 
-            const projects = ProjectStorage.getProjects();
+            // Сохраняем метаданные в localStorage
+            const projects = JSON.parse(localStorage.getItem('school15_projects') || '[]');
             projects.push({
                 id: projectId,
                 title: title,
@@ -242,11 +251,13 @@
                 description: description,
                 color: color,
                 thumb: thumb,
-                files: result.files,
+                fileUrl: fileUrl,
+                fileName: selectedProjectFile.name,
+                fileSize: selectedProjectFile.size,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             });
-            ProjectStorage.saveProjects(projects);
+            localStorage.setItem('school15_projects', JSON.stringify(projects));
 
             alert('✅ Проект отправлен на модерацию!');
             window.location.href = 'projects.html';
