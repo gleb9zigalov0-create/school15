@@ -2,17 +2,19 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
+    const DB_VERSION = 5;  // ← увеличил версию
 
     function openDB() {
         return new Promise((resolve, reject) => {
-            const req = indexedDB.open(DB_NAME, 1);
+            const req = indexedDB.open(DB_NAME, DB_VERSION);
             req.onerror = () => reject(req.error);
             req.onsuccess = () => resolve(req.result);
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE)) {
-                    db.createObjectStore(STORE, { keyPath: 'key' });
+                if (db.objectStoreNames.contains(STORE)) {
+                    db.deleteObjectStore(STORE);
                 }
+                db.createObjectStore(STORE, { keyPath: 'key' });
             };
         });
     }
