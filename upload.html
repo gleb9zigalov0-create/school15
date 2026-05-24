@@ -243,7 +243,7 @@
                 });
             }
 
-            // ✅ ДОБАВЛЯЕМ новый проект в список, а не заменяем
+            // ✅ ДОБАВЛЯЕМ, А НЕ ЗАМЕНЯЕМ
             const projects = ProjectStorage.getProjects();
             projects.push({
                 id: projectId,
@@ -256,6 +256,8 @@
                 createdAt: new Date().toISOString()
             });
             ProjectStorage.saveProjects(projects);
+            
+            console.log('Все проекты после сохранения:', ProjectStorage.getProjects());
 
             alert('✅ Проект отправлен на модерацию!');
             window.location.href = 'projects.html';
