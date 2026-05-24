@@ -14,7 +14,7 @@
             padding: 2rem;
         }
         .glass-card {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.35);
             backdrop-filter: blur(20px);
@@ -124,13 +124,13 @@
     </div>
 
     <div class="form-group">
-        <label>📦 Файлы проекта (папка или ZIP)</label>
+        <label>📦 Файл проекта (ZIP или любой файл)</label>
         <div class="upload-area" id="projectArea">
             <div class="upload-icon">📦</div>
-            <div class="upload-text">Нажми или перетащи папку / ZIP</div>
+            <div class="upload-text">Нажми или перетащи ZIP / файл</div>
             <div class="file-name" id="projectName">Файл не выбран</div>
         </div>
-        <input type="file" id="projectFile" webkitdirectory directory multiple style="display:none">
+        <input type="file" id="projectFile" style="display:none">
     </div>
 
     <button class="submit-btn" id="submitBtn">🚀 Отправить на модерацию</button>
@@ -140,7 +140,7 @@
 <script src="js/project-storage.js"></script>
 <script>
     let selectedImage = null;
-    let selectedFiles = null;
+    let selectedProjectFile = null;
 
     // Обложка
     const imageArea = document.getElementById('imageArea');
@@ -168,7 +168,7 @@
         reader.readAsDataURL(file);
     }
 
-    // Файлы проекта
+    // Файл проекта
     const projectArea = document.getElementById('projectArea');
     const projectFile = document.getElementById('projectFile');
     const projectName = document.getElementById('projectName');
@@ -179,31 +179,18 @@
     projectArea.ondrop = (e) => {
         e.preventDefault();
         projectArea.style.background = '';
-        const items = e.dataTransfer.items;
-        if (items && items.length > 0) {
-            const entry = items[0].webkitGetAsEntry();
-            if (entry && entry.isDirectory) {
-                alert('Папки через drag&drop пока не поддерживаются — используй кнопку');
-                return;
-            }
-        }
-        const files = e.dataTransfer.files;
-        if (files.length) {
-            selectedFiles = files;
-            updateProjectName(files);
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            selectedProjectFile = file;
+            projectName.textContent = file.name;
         }
     };
     projectFile.onchange = (e) => {
-        if (e.target.files.length) {
-            selectedFiles = e.target.files;
-            updateProjectName(e.target.files);
+        if (e.target.files[0]) {
+            selectedProjectFile = e.target.files[0];
+            projectName.textContent = e.target.files[0].name;
         }
     };
-
-    function updateProjectName(files) {
-        if (files.length === 1) projectName.textContent = files[0].name;
-        else projectName.textContent = `📁 Папка (${files.length} файлов)`;
-    }
 
     document.getElementById('color').oninput = (e) => {
         document.getElementById('colorPreview').style.background = e.target.value;
@@ -216,15 +203,16 @@
         const color = document.getElementById('color').value;
 
         if (!title) { alert('Введите название'); return; }
-        if (!selectedFiles || !selectedFiles.length) { alert('Выберите файлы проекта'); return; }
+        if (!selectedProjectFile) { alert('Выберите файл проекта (ZIP или любой файл)'); return; }
 
         const projectId = Date.now().toString();
 
         try {
-            // 1. Сохраняем файлы в IndexedDB
-            await ProjectStorage.saveProjectFolder(projectId, selectedFiles);
+            // Сохраняем файл в IndexedDB как один файл (эмулируем папку)
+            const files = [selectedProjectFile];
+            await ProjectStorage.saveProjectFolder(projectId, files);
 
-            // 2. Получаем превью (из обложки или первого фото в проекте)
+            // Получаем превью (из обложки или из файла, если это картинка)
             let thumb = null;
             if (selectedImage) {
                 thumb = await new Promise(res => {
@@ -233,26 +221,17 @@
                     reader.onerror = () => res(null);
                     reader.readAsDataURL(selectedImage);
                 });
-            } else {
-                for (let f of selectedFiles) {
-                    if (f.type.startsWith('image/')) {
-                        thumb = await new Promise(res => {
-                            const reader = new FileReader();
-                            reader.onload = (e) => res(e.target.result);
-                            reader.onerror = () => res(null);
-                            reader.readAsDataURL(f);
-                        });
-                        if (thumb) break;
-                    }
-                }
+            } else if (selectedProjectFile.type.startsWith('image/')) {
+                thumb = await new Promise(res => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => res(e.target.result);
+                    reader.onerror = () => res(null);
+                    reader.readAsDataURL(selectedProjectFile);
+                });
             }
 
-            // 3. Сохраняем метаданные (со статусом pending)
+            // Сохраняем метаданные
             const projects = ProjectStorage.getProjects();
-            // Удаляем старый проект с таким же ID, если есть (на всякий случай)
-            const existingIndex = projects.findIndex(p => p.id === projectId);
-            if (existingIndex !== -1) projects.splice(existingIndex, 1);
-            
             projects.push({
                 id: projectId,
                 title: title,
