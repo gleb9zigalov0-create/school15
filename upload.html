@@ -124,7 +124,7 @@
     </div>
 
     <div class="form-group">
-        <label>📦 Файл проекта (ZIP, PDF, DOCX, картинка и т.д.)</label>
+        <label>📦 Файл проекта (ZIP, PDF, DOCX и т.д.)</label>
         <div class="upload-area" id="projectArea">
             <div class="upload-icon">📦</div>
             <div class="upload-text">Нажми или перетащи файл</div>
@@ -137,6 +137,11 @@
     <a href="projects.html" class="back-link">← Назад к проектам</a>
 </div>
 
+<script src="js/firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="js/project-storage.js"></script>
 <script>
     let selectedImage = null;
@@ -208,10 +213,9 @@
         const projectId = Date.now().toString();
 
         try {
-            // Сохраняем файл в IndexedDB
+            // Загружаем файл в Storage
             const result = await ProjectStorage.saveProjectFolder(projectId, [selectedProjectFile]);
-            console.log('Файлы сохранены:', result);
-
+            
             // Получаем превью
             let thumb = null;
             if (selectedImage) {
@@ -230,7 +234,6 @@
                 });
             }
 
-            // Сохраняем метаданные
             const projects = ProjectStorage.getProjects();
             projects.push({
                 id: projectId,
@@ -239,6 +242,7 @@
                 description: description,
                 color: color,
                 thumb: thumb,
+                files: result.files,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             });
