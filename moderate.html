@@ -25,13 +25,6 @@
         }
         h1 { text-align: center; color: #0a3f6f; font-size: 2rem; margin-bottom: 0.5rem; }
         .sub { text-align: center; color: #2c5a7a; margin-bottom: 2rem; }
-        
-        /* СТИЛЬ КАРТОЧЕК КАК РАНЬШЕ */
-        .project-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
         .project-card {
             background: rgba(255, 255, 255, 0.8);
             border-radius: 48px;
@@ -39,10 +32,6 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
             transition: 0.3s;
-        }
-        .project-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 25px 40px -15px rgba(0, 0, 0, 0.25);
         }
         .project-header {
             position: relative;
@@ -59,111 +48,25 @@
             background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
             padding: 1rem;
         }
-        .project-header h2 {
-            color: white;
-            font-size: 1.5rem;
-            margin: 0;
-        }
-        .project-details {
-            padding: 1.5rem;
-        }
-        .info-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            align-items: center;
-        }
-        .info-badge {
-            background: rgba(10, 63, 111, 0.15);
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            color: #0a3f6f;
-            font-weight: 500;
-        }
-        .color-preview {
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .description {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 28px;
-            padding: 1rem;
-            margin: 1rem 0;
-            color: #1e2f3e;
-            line-height: 1.4;
-        }
-        .files-list {
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 28px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        .file-item {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .download-btn {
-            background: #0a3f6f;
-            color: white;
-            border: none;
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 1rem;
-        }
-        .btn-approve {
-            background: #2e7d64;
-            color: white;
-            padding: 0.6rem 1.5rem;
-            border-radius: 60px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-reject {
-            background: #e94560;
-            color: white;
-            padding: 0.6rem 1.5rem;
-            border-radius: 60px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            background: rgba(255,255,255,0.5);
-            border-radius: 48px;
-            color: #0a3f6f;
-        }
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 2rem;
-            color: #0a3f6f;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        @media (max-width: 700px) {
-            .project-header h2 { font-size: 1.2rem; }
-            .action-buttons { justify-content: center; }
-        }
+        .project-header h2 { color: white; font-size: 1.5rem; margin: 0; }
+        .project-details { padding: 1.5rem; }
+        .info-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; align-items: center; }
+        .info-badge { background: rgba(10, 63, 111, 0.15); padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.85rem; color: #0a3f6f; font-weight: 500; }
+        .color-preview { width: 40px; height: 40px; border-radius: 20px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .description { background: rgba(255, 255, 255, 0.6); border-radius: 28px; padding: 1rem; margin: 1rem 0; color: #1e2f3e; line-height: 1.4; }
+        .files-list { background: rgba(255, 255, 255, 0.4); border-radius: 28px; padding: 1rem; margin: 1rem 0; }
+        .file-item { padding: 0.5rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .download-btn { background: #0a3f6f; color: white; border: none; padding: 0.3rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+        .action-buttons { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
+        .btn-approve { background: #2e7d64; color: white; padding: 0.6rem 1.5rem; border-radius: 60px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-reject { background: #e94560; color: white; padding: 0.6rem 1.5rem; border-radius: 60px; border: none; cursor: pointer; font-weight: bold; }
+        .empty-state { text-align: center; padding: 3rem; background: rgba(255,255,255,0.5); border-radius: 48px; color: #0a3f6f; }
+        .back-link { display: block; text-align: center; margin-top: 2rem; color: #0a3f6f; text-decoration: none; font-weight: 500; }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 1rem; gap: 1rem; }
+        .nav-btn { background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer; }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .counter { background: rgba(10,63,111,0.8); color: white; padding: 0.5rem 1rem; border-radius: 40px; }
+        @media (max-width: 700px) { .project-header h2 { font-size: 1.2rem; } .action-buttons { justify-content: center; } }
     </style>
 </head>
 <body>
@@ -237,10 +140,10 @@
                     </div>
                 </div>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 1rem; gap: 1rem;">
-                <button onclick="prevProject()" ${currentIndex === 0 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">← Назад</button>
-                <span style="background: rgba(10,63,111,0.8); color: white; padding: 0.5rem 1rem; border-radius: 40px;">${currentIndex + 1} / ${projects.length}</span>
-                <button onclick="nextProject()" ${currentIndex === projects.length - 1 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">Вперед →</button>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="prevProject()" ${currentIndex === 0 ? 'disabled' : ''}>← Назад</button>
+                <span class="counter">${currentIndex + 1} / ${projects.length}</span>
+                <button class="nav-btn" onclick="nextProject()" ${currentIndex === projects.length - 1 ? 'disabled' : ''}>Вперед →</button>
             </div>
         `;
         
