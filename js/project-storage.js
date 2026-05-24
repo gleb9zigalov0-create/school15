@@ -2,7 +2,7 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 1;
+    const DB_VERSION = 7;
 
     function openDB() {
         return new Promise((resolve, reject) => {
@@ -11,9 +11,10 @@ const ProjectStorage = (function () {
             req.onsuccess = () => resolve(req.result);
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE)) {
-                    db.createObjectStore(STORE, { keyPath: 'key' });
+                if (db.objectStoreNames.contains(STORE)) {
+                    db.deleteObjectStore(STORE);
                 }
+                db.createObjectStore(STORE, { keyPath: 'key' });
             };
         });
     }
