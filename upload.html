@@ -207,6 +207,8 @@
         if (file) {
             selectedProjectFile = file;
             projectName.textContent = file.name;
+        } else {
+            alert('Перетащи ZIP или файл');
         }
     };
     projectFile.onchange = (e) => {
@@ -239,6 +241,7 @@
         try {
             // Сохраняем файл в Storage
             const result = await ProjectStorage.saveProjectFolder(projectId, [selectedProjectFile]);
+            console.log('Файл сохранён:', result);
             
             // Получаем превью
             let thumb = null;
@@ -258,7 +261,7 @@
                 });
             }
 
-            // ДОБАВЛЯЕМ новый проект, а не заменяем список
+            // ДОБАВЛЯЕМ новый проект
             const projects = ProjectStorage.getProjects();
             projects.push({
                 id: projectId,
