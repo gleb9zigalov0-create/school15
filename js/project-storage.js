@@ -2,7 +2,7 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 6;
+    const DB_VERSION = 1;
 
     function openDB() {
         return new Promise((resolve, reject) => {
@@ -11,10 +11,9 @@ const ProjectStorage = (function () {
             req.onsuccess = () => resolve(req.result);
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                if (db.objectStoreNames.contains(STORE)) {
-                    db.deleteObjectStore(STORE);
+                if (!db.objectStoreNames.contains(STORE)) {
+                    db.createObjectStore(STORE, { keyPath: 'key' });
                 }
-                db.createObjectStore(STORE, { keyPath: 'key' });
             };
         });
     }
@@ -35,22 +34,16 @@ const ProjectStorage = (function () {
         localStorage.setItem(META_KEY, JSON.stringify(list));
     }
 
-    async function saveProjectFolder(projectId, fileList) {
-        const files = Array.from(fileList);
-        if (!files.length) throw new Error('Нет файлов');
-        
+    async function saveProjectFiles(projectId, files) {
         const db = await openDB();
-        
         for (const file of files) {
             const data = await new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
                 reader.readAsArrayBuffer(file);
             });
-            
             const tx = db.transaction(STORE, 'readwrite');
             const store = tx.objectStore(STORE);
-            
             await new Promise((resolve, reject) => {
                 const req = store.put({
                     key: key(projectId, file.name),
@@ -65,47 +58,16 @@ const ProjectStorage = (function () {
                 tx.onerror = () => reject(tx.error);
             });
         }
-        
-        return { fileCount: files.length };
-    }
-
-    async function deleteProject(projectId) {
-        // Удаляем файлы из IndexedDB
-        const db = await openDB();
-        const tx = db.transaction(STORE, 'readwrite');
-        const store = tx.objectStore(STORE);
-        
-        // Получаем все файлы проекта
-        const all = await new Promise((resolve) => {
-            const req = store.getAll();
-            req.onsuccess = () => resolve(req.result);
-        });
-        
-        const toDelete = all.filter(r => r.projectId === projectId);
-        for (const record of toDelete) {
-            store.delete(record.key);
-        }
-        
-        await new Promise((resolve, reject) => {
-            tx.oncomplete = resolve;
-            tx.onerror = () => reject(tx.error);
-        });
-        
-        // Удаляем метаданные из localStorage
-        const projects = getProjects().filter(p => p.id !== projectId);
-        saveProjects(projects);
     }
 
     async function listProjectFiles(projectId) {
         const db = await openDB();
         const tx = db.transaction(STORE, 'readonly');
         const store = tx.objectStore(STORE);
-        
         const all = await new Promise((resolve) => {
             const req = store.getAll();
             req.onsuccess = () => resolve(req.result);
         });
-        
         return all.filter(r => r.projectId === projectId);
     }
 
@@ -113,7 +75,6 @@ const ProjectStorage = (function () {
         const db = await openDB();
         const tx = db.transaction(STORE, 'readonly');
         const store = tx.objectStore(STORE);
-        
         return new Promise((resolve) => {
             const req = store.get(key(projectId, fileName));
             req.onsuccess = () => resolve(req.result);
@@ -134,6 +95,22 @@ const ProjectStorage = (function () {
         setTimeout(() => URL.revokeObjectURL(url), 500);
     }
 
+    async function deleteProject(projectId) {
+        const files = await listProjectFiles(projectId);
+        const db = await openDB();
+        const tx = db.transaction(STORE, 'readwrite');
+        const store = tx.objectStore(STORE);
+        for (const file of files) {
+            store.delete(key(projectId, file.name));
+        }
+        await new Promise((resolve, reject) => {
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error);
+        });
+        const projects = getProjects().filter(p => p.id !== projectId);
+        saveProjects(projects);
+    }
+
     function formatSize(bytes) {
         if (bytes < 1024) return bytes + ' Б';
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ';
@@ -143,11 +120,11 @@ const ProjectStorage = (function () {
     return {
         getProjects,
         saveProjects,
-        saveProjectFolder,
-        deleteProject,
+        saveProjectFiles,
         listProjectFiles,
         getFileRecord,
         downloadRecord,
+        deleteProject,
         formatSize
     };
 })();
