@@ -2,7 +2,7 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 6;  // ← УВЕЛИЧИЛ ВЕРСИЮ
+    const DB_VERSION = 6;
 
     function openDB() {
         return new Promise((resolve, reject) => {
@@ -69,6 +69,33 @@ const ProjectStorage = (function () {
         return { fileCount: files.length };
     }
 
+    async function deleteProject(projectId) {
+        // Удаляем файлы из IndexedDB
+        const db = await openDB();
+        const tx = db.transaction(STORE, 'readwrite');
+        const store = tx.objectStore(STORE);
+        
+        // Получаем все файлы проекта
+        const all = await new Promise((resolve) => {
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result);
+        });
+        
+        const toDelete = all.filter(r => r.projectId === projectId);
+        for (const record of toDelete) {
+            store.delete(record.key);
+        }
+        
+        await new Promise((resolve, reject) => {
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error);
+        });
+        
+        // Удаляем метаданные из localStorage
+        const projects = getProjects().filter(p => p.id !== projectId);
+        saveProjects(projects);
+    }
+
     async function listProjectFiles(projectId) {
         const db = await openDB();
         const tx = db.transaction(STORE, 'readonly');
@@ -117,6 +144,7 @@ const ProjectStorage = (function () {
         getProjects,
         saveProjects,
         saveProjectFolder,
+        deleteProject,
         listProjectFiles,
         getFileRecord,
         downloadRecord,
