@@ -75,7 +75,7 @@
 <body>
 <div class="glass-moderate">
     <h1>🛡 Панель модерации</h1>
-    <div class="sub">Управление проектами</div>
+    <div class="sub">Проекты на проверку</div>
     <div id="moderatorContent"></div>
     <a href="index.html" class="back-link">← На главную</a>
 </div>
@@ -89,9 +89,10 @@
     let currentIndex = 0;
 
     async function loadProjects() {
-        projects = ProjectStorage.getProjects();
+        const allProjects = ProjectStorage.getProjects();
+        projects = allProjects.filter(p => p.status !== 'approved');
         if (projects.length === 0) {
-            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">📭 Нет проектов</div>';
+            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации</div>';
             return;
         }
         currentIndex = 0;
@@ -137,7 +138,8 @@
                         ${filesHtml}
                     </div>
                     <div class="action-buttons">
-                        <button class="btn-reject" onclick="deleteProject()">🗑️ Удалить проект</button>
+                        <button class="btn-approve" onclick="approveProject()">✅ Одобрить</button>
+                        <button class="btn-reject" onclick="deleteProject()">❌ Удалить</button>
                     </div>
                 </div>
             </div>
@@ -173,13 +175,26 @@
         }
     };
 
+    window.approveProject = async () => {
+        const proj = projects[currentIndex];
+        await ProjectStorage.approveProject(proj.id);
+        projects.splice(currentIndex, 1);
+        if (projects.length === 0) {
+            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации</div>';
+        } else {
+            if (currentIndex >= projects.length) currentIndex = projects.length - 1;
+            renderCurrentProject();
+        }
+        alert(`✅ Проект "${proj.title}" одобрен! Он появится на главной странице проектов.`);
+    };
+
     window.deleteProject = async () => {
         const proj = projects[currentIndex];
         if (confirm(`Удалить проект "${proj.title}" навсегда?`)) {
             await ProjectStorage.deleteProject(proj.id);
             projects.splice(currentIndex, 1);
             if (projects.length === 0) {
-                document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">📭 Нет проектов</div>';
+                document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации</div>';
             } else {
                 if (currentIndex >= projects.length) currentIndex = projects.length - 1;
                 renderCurrentProject();
