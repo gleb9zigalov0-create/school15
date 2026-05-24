@@ -2,20 +2,39 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 3;  // ← увеличили версию
+    const DB_VERSION = 3;
 
-    function openDB() {
-        return new Promise((resolve, reject) => {
+    async function openDB() {
+        // Если старая база с меньшей версией — удаляем её
+        try {
             const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onerror = () => reject(req.error);
-            req.onsuccess = () => resolve(req.result);
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE)) {
+            return new Promise((resolve, reject) => {
+                req.onerror = () => reject(req.error);
+                req.onsuccess = () => resolve(req.result);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (db.objectStoreNames.contains(STORE)) {
+                        db.deleteObjectStore(STORE);
+                    }
                     db.createObjectStore(STORE, { keyPath: 'key' });
-                }
-            };
-        });
+                };
+            });
+        } catch (err) {
+            // Если ошибка версии — удаляем базу и пробуем снова
+            return new Promise((resolve, reject) => {
+                const deleteReq = indexedDB.deleteDatabase(DB_NAME);
+                deleteReq.onsuccess = () => {
+                    const newReq = indexedDB.open(DB_NAME, DB_VERSION);
+                    newReq.onerror = () => reject(newReq.error);
+                    newReq.onsuccess = () => resolve(newReq.result);
+                    newReq.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        db.createObjectStore(STORE, { keyPath: 'key' });
+                    };
+                };
+                deleteReq.onerror = () => reject(deleteReq.error);
+            });
+        }
     }
 
     function key(id, name) {
