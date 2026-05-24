@@ -60,7 +60,7 @@
 <div class="glass-container">
     <div class="header">
         <h1>🚀 Проекты учеников</h1>
-        <p>Идеи, исследования, творчество — всё здесь</p>
+        <p>Одобренные работы</p>
     </div>
     <div class="top-actions">
         <button class="upload-btn" id="uploadBtn">➕ Загрузить проект</button>
@@ -76,14 +76,15 @@
     let projects = [];
 
     function loadProjects() {
-        projects = ProjectStorage.getProjects();
+        const allProjects = ProjectStorage.getProjects();
+        projects = allProjects.filter(p => p.status === 'approved');
         renderProjects();
     }
 
     function renderProjects() {
         const grid = document.getElementById('projectsGrid');
         if (!projects.length) {
-            grid.innerHTML = '<div class="empty-msg">📭 Пока нет проектов. Стань первым!</div>';
+            grid.innerHTML = '<div class="empty-msg">📭 Пока нет одобренных проектов. Стань первым!</div>';
             return;
         }
         grid.innerHTML = projects.map(proj => `
