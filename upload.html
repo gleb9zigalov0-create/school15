@@ -147,12 +147,11 @@
     let selectedProjectFile = null;
     let storage;
 
-    // Инициализация Storage
     if (firebase && firebase.storage) {
         storage = firebase.storage();
     }
 
-    // Обложка
+    // === ОБЛОЖКА ===
     const imageArea = document.getElementById('imageArea');
     const imageFile = document.getElementById('imageFile');
     const imageName = document.getElementById('imageName');
@@ -178,7 +177,7 @@
         reader.readAsDataURL(file);
     }
 
-    // Файл проекта
+    // === ФАЙЛ ПРОЕКТА ===
     const projectArea = document.getElementById('projectArea');
     const projectFile = document.getElementById('projectFile');
     const projectName = document.getElementById('projectName');
@@ -202,10 +201,12 @@
         }
     };
 
+    // === ЦВЕТ ===
     document.getElementById('color').oninput = (e) => {
         document.getElementById('colorPreview').style.background = e.target.value;
     };
 
+    // === ОТПРАВКА ===
     document.getElementById('submitBtn').onclick = async () => {
         const title = document.getElementById('title').value.trim();
         const subject = document.getElementById('subject').value;
@@ -242,7 +243,7 @@
                 });
             }
 
-            // Сохраняем метаданные в localStorage
+            // Сохраняем метаданные
             const projects = JSON.parse(localStorage.getItem('school15_projects') || '[]');
             projects.push({
                 id: projectId,
