@@ -34,10 +34,8 @@
             border: none;
             background: rgba(255, 255, 255, 0.8);
             font-size: 1rem;
-            transition: 0.2s;
         }
-        textarea { border-radius: 24px; resize: vertical; font-family: inherit; }
-        input:focus, select:focus, textarea:focus { outline: none; background: white; box-shadow: 0 0 0 3px rgba(10, 63, 111, 0.2); }
+        textarea { border-radius: 24px; resize: vertical; }
         .upload-area {
             background: rgba(255, 255, 255, 0.5);
             border: 2px dashed rgba(10, 63, 111, 0.4);
@@ -46,30 +44,25 @@
             text-align: center;
             cursor: pointer;
             transition: 0.2s;
-            margin-top: 0.5rem;
         }
         .upload-area:hover { background: rgba(255, 255, 255, 0.7); border-color: #0a3f6f; }
-        .upload-area.drag-over { background: rgba(10, 63, 111, 0.1); border-color: #0a3f6f; }
         .upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .upload-text { color: #0a3f6f; font-weight: 500; }
         .file-name { margin-top: 0.5rem; font-size: 0.8rem; color: #2c5a7a; word-break: break-all; }
-        .image-preview-area { margin-top: 0.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
         .image-preview {
             width: 100px; height: 100px; background: rgba(255,255,255,0.6); border-radius: 20px;
-            display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid white;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; margin-top: 1rem;
         }
         .image-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .image-preview.empty { font-size: 2rem; color: #0a3f6f; }
-        .color-preview { width: 60px; height: 60px; border-radius: 20px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; }
+        .color-preview { width: 60px; height: 60px; border-radius: 20px; border: 3px solid white; margin-top: 0.5rem; }
         .submit-btn {
             background: #0a3f6f; color: white; border: none; width: 100%; padding: 1rem; border-radius: 60px;
             font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; margin-top: 1rem;
         }
         .submit-btn:hover { background: #e94560; transform: scale(1.02); }
-        .back-link { display: inline-block; margin-top: 1.5rem; text-align: center; width: 100%; color: #0a3f6f; text-decoration: none; font-weight: 500; }
+        .back-link { display: block; text-align: center; margin-top: 1.5rem; color: #0a3f6f; text-decoration: none; }
         .row-2cols { display: flex; gap: 1rem; flex-wrap: wrap; }
         .row-2cols > * { flex: 1; }
-        @media (max-width: 600px) { body { padding: 1rem; } .glass-card { padding: 1.5rem; } .row-2cols { flex-direction: column; } }
+        @media (max-width: 600px) { .row-2cols { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -107,44 +100,37 @@
                 <option value="Другое">✨ Другое</option>
             </select>
         </div>
-
         <div class="form-group">
             <label>🎨 Цвет карточки</label>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <input type="color" id="color" value="#cce8f5" style="width: 80px; padding: 0; height: 50px;">
-                <div class="color-preview" id="colorPreview" style="background: #cce8f5;"></div>
-            </div>
+            <input type="color" id="color" value="#cce8f5">
+            <div class="color-preview" id="colorPreview" style="background: #cce8f5;"></div>
         </div>
     </div>
 
     <div class="form-group">
-        <label>📝 Описание проекта</label>
-        <textarea id="desc" rows="3" placeholder="Расскажи, в чём суть проекта..."></textarea>
+        <label>📝 Описание</label>
+        <textarea id="desc" rows="3" placeholder="Опиши свой проект..."></textarea>
     </div>
 
-    <div class="row-2cols">
-        <div class="form-group">
-            <label>🖼️ Обложка (картинка)</label>
-            <div class="upload-area" id="imageUploadArea">
-                <div class="upload-icon">🖼️</div>
-                <div class="upload-text">Нажми или перетащи картинку</div>
-                <div class="file-name" id="imageFileName">Файл не выбран</div>
-            </div>
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            <div class="image-preview-area" id="imagePreviewArea">
-                <div class="image-preview empty" id="imagePreview">🖼️</div>
-            </div>
+    <div class="form-group">
+        <label>🖼️ Обложка (картинка)</label>
+        <div class="upload-area" id="imageArea">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-text">Нажми или перетащи картинку</div>
+            <div class="file-name" id="imageName">Файл не выбран</div>
         </div>
+        <input type="file" id="imageFile" accept="image/*" style="display:none">
+        <div class="image-preview" id="imagePreview"></div>
+    </div>
 
-        <div class="form-group">
-            <label>📦 Файл проекта (ZIP, папка или файл)</label>
-            <div class="upload-area" id="fileUploadArea">
-                <div class="upload-icon">📦</div>
-                <div class="upload-text">Нажми или перетащи папку / файл</div>
-                <div class="file-name" id="projectFileName">Файл не выбран</div>
-            </div>
-            <input type="file" id="projectInput" webkitdirectory directory multiple style="display: none;">
+    <div class="form-group">
+        <label>📦 Файлы проекта (папка или ZIP)</label>
+        <div class="upload-area" id="projectArea">
+            <div class="upload-icon">📦</div>
+            <div class="upload-text">Нажми или перетащи папку / ZIP</div>
+            <div class="file-name" id="projectName">Файл не выбран</div>
         </div>
+        <input type="file" id="projectFile" webkitdirectory directory multiple style="display:none">
     </div>
 
     <button class="submit-btn" id="submitBtn">🚀 Отправить на модерацию</button>
@@ -153,115 +139,120 @@
 
 <script src="js/project-storage.js"></script>
 <script>
-    const imageUploadArea = document.getElementById('imageUploadArea');
-    const imageInput = document.getElementById('imageInput');
+    let selectedImage = null;
+    let selectedFiles = null;
+
+    // Обложка
+    const imageArea = document.getElementById('imageArea');
+    const imageFile = document.getElementById('imageFile');
+    const imageName = document.getElementById('imageName');
     const imagePreview = document.getElementById('imagePreview');
-    const imageFileName = document.getElementById('imageFileName');
-    
-    const fileUploadArea = document.getElementById('fileUploadArea');
-    const projectInput = document.getElementById('projectInput');
-    const projectFileName = document.getElementById('projectFileName');
-    
-    let selectedImageFile = null;
-    let selectedProjectFiles = null;
-    
-    imageUploadArea.addEventListener('click', () => imageInput.click());
-    imageUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); imageUploadArea.classList.add('drag-over'); });
-    imageUploadArea.addEventListener('dragleave', () => { imageUploadArea.classList.remove('drag-over'); });
-    imageUploadArea.addEventListener('drop', (e) => {
+
+    imageArea.onclick = () => imageFile.click();
+    imageArea.ondragover = (e) => { e.preventDefault(); imageArea.style.background = 'rgba(255,255,255,0.7)'; };
+    imageArea.ondragleave = () => imageArea.style.background = '';
+    imageArea.ondrop = (e) => {
         e.preventDefault();
-        imageUploadArea.classList.remove('drag-over');
+        imageArea.style.background = '';
         const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) handleImageSelect(file);
-        else alert('Пожалуйста, выбери картинку');
-    });
-    imageInput.addEventListener('change', (e) => { if (e.target.files[0]) handleImageSelect(e.target.files[0]); });
-    
-    function handleImageSelect(file) {
-        selectedImageFile = file;
-        imageFileName.textContent = file.name;
+        if (file && file.type.startsWith('image/')) handleImage(file);
+        else alert('Перетащи картинку');
+    };
+    imageFile.onchange = (e) => { if (e.target.files[0]) handleImage(e.target.files[0]); };
+
+    function handleImage(file) {
+        selectedImage = file;
+        imageName.textContent = file.name;
         const reader = new FileReader();
-        reader.onload = (e) => {
-            imagePreview.innerHTML = `<img src="${e.target.result}" alt="preview">`;
-            imagePreview.classList.remove('empty');
-        };
+        reader.onload = (e) => { imagePreview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`; };
         reader.readAsDataURL(file);
     }
-    
-    fileUploadArea.addEventListener('click', () => projectInput.click());
-    fileUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fileUploadArea.classList.add('drag-over'); });
-    fileUploadArea.addEventListener('dragleave', () => { fileUploadArea.classList.remove('drag-over'); });
-    fileUploadArea.addEventListener('drop', (e) => {
+
+    // Файлы проекта
+    const projectArea = document.getElementById('projectArea');
+    const projectFile = document.getElementById('projectFile');
+    const projectName = document.getElementById('projectName');
+
+    projectArea.onclick = () => projectFile.click();
+    projectArea.ondragover = (e) => { e.preventDefault(); projectArea.style.background = 'rgba(255,255,255,0.7)'; };
+    projectArea.ondragleave = () => projectArea.style.background = '';
+    projectArea.ondrop = (e) => {
         e.preventDefault();
-        fileUploadArea.classList.remove('drag-over');
+        projectArea.style.background = '';
         const items = e.dataTransfer.items;
-        if (items && items.length) {
+        if (items && items.length > 0) {
             const entry = items[0].webkitGetAsEntry();
             if (entry && entry.isDirectory) {
-                alert('Папки через drag&drop пока не поддерживаются, используй кнопку');
+                alert('Папки через drag&drop пока не поддерживаются — используй кнопку');
                 return;
             }
         }
         const files = e.dataTransfer.files;
         if (files.length) {
-            selectedProjectFiles = files;
-            updateProjectFileName(files);
+            selectedFiles = files;
+            updateProjectName(files);
         }
-    });
-    projectInput.addEventListener('change', (e) => {
+    };
+    projectFile.onchange = (e) => {
         if (e.target.files.length) {
-            selectedProjectFiles = e.target.files;
-            updateProjectFileName(e.target.files);
+            selectedFiles = e.target.files;
+            updateProjectName(e.target.files);
         }
-    });
-    
-    function updateProjectFileName(files) {
-        if (files.length === 1) projectFileName.textContent = files[0].name;
-        else if (files.length > 1) projectFileName.textContent = `📁 Папка (${files.length} файлов)`;
-        else projectFileName.textContent = 'Файл не выбран';
+    };
+
+    function updateProjectName(files) {
+        if (files.length === 1) projectName.textContent = files[0].name;
+        else projectName.textContent = `📁 Папка (${files.length} файлов)`;
     }
-    
-    document.getElementById('color').addEventListener('input', (e) => {
+
+    document.getElementById('color').oninput = (e) => {
         document.getElementById('colorPreview').style.background = e.target.value;
-    });
-    
+    };
+
     document.getElementById('submitBtn').onclick = async () => {
         const title = document.getElementById('title').value.trim();
         const subject = document.getElementById('subject').value;
         const description = document.getElementById('desc').value.trim();
         const color = document.getElementById('color').value;
-        
-        if (!title) { alert('Введите название проекта!'); return; }
-        if (!selectedProjectFiles || !selectedProjectFiles.length) { alert('Выберите файл или папку проекта!'); return; }
-        
+
+        if (!title) { alert('Введите название'); return; }
+        if (!selectedFiles || !selectedFiles.length) { alert('Выберите файлы проекта'); return; }
+
         const projectId = Date.now().toString();
-        
+
         try {
-            const result = await ProjectStorage.saveProjectFolder(projectId, selectedProjectFiles);
-            
+            // 1. Сохраняем файлы в IndexedDB
+            await ProjectStorage.saveProjectFolder(projectId, selectedFiles);
+
+            // 2. Получаем превью (из обложки или первого фото в проекте)
             let thumb = null;
-            if (selectedImageFile) {
-                thumb = await new Promise((resolve) => {
+            if (selectedImage) {
+                thumb = await new Promise(res => {
                     const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = () => resolve(null);
-                    reader.readAsDataURL(selectedImageFile);
+                    reader.onload = (e) => res(e.target.result);
+                    reader.onerror = () => res(null);
+                    reader.readAsDataURL(selectedImage);
                 });
             } else {
-                for (let f of selectedProjectFiles) {
+                for (let f of selectedFiles) {
                     if (f.type.startsWith('image/')) {
-                        thumb = await new Promise((resolve) => {
+                        thumb = await new Promise(res => {
                             const reader = new FileReader();
-                            reader.onload = (e) => resolve(e.target.result);
-                            reader.onerror = () => resolve(null);
+                            reader.onload = (e) => res(e.target.result);
+                            reader.onerror = () => res(null);
                             reader.readAsDataURL(f);
                         });
-                        break;
+                        if (thumb) break;
                     }
                 }
             }
-            
+
+            // 3. Сохраняем метаданные (со статусом pending)
             const projects = ProjectStorage.getProjects();
+            // Удаляем старый проект с таким же ID, если есть (на всякий случай)
+            const existingIndex = projects.findIndex(p => p.id === projectId);
+            if (existingIndex !== -1) projects.splice(existingIndex, 1);
+            
             projects.push({
                 id: projectId,
                 title: title,
@@ -269,11 +260,11 @@
                 description: description,
                 color: color,
                 thumb: thumb,
-                status: 'pending',   // ← ВАЖНО: проект идёт на модерацию
+                status: 'pending',
                 createdAt: new Date().toISOString()
             });
             ProjectStorage.saveProjects(projects);
-            
+
             alert('✅ Проект отправлен на модерацию!');
             window.location.href = 'projects.html';
         } catch (err) {
