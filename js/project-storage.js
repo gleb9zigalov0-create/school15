@@ -1,26 +1,11 @@
 const ProjectStorage = (function () {
-    const DB_NAME = 'school15_projects_db';
-    const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 4;
+    let storage = null;
 
-    function openDB() {
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onerror = () => reject(req.error);
-            req.onsuccess = () => resolve(req.result);
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (db.objectStoreNames.contains(STORE)) {
-                    db.deleteObjectStore(STORE);
-                }
-                db.createObjectStore(STORE, { keyPath: 'key' });
-            };
-        });
-    }
-
-    function key(id, name) {
-        return `${id}|${name}`;
+    function init() {
+        if (firebase && firebase.storage && !storage) {
+            storage = firebase.storage();
+        }
     }
 
     function getProjects() {
@@ -35,104 +20,54 @@ const ProjectStorage = (function () {
         localStorage.setItem(META_KEY, JSON.stringify(list));
     }
 
-    async function deleteProjectFiles(projectId) {
-        const db = await openDB();
-        const tx = db.transaction(STORE, 'readwrite');
-        const store = tx.objectStore(STORE);
-        const request = store.getAll();
-        
-        return new Promise((resolve, reject) => {
-            request.onsuccess = () => {
-                const all = request.result || [];
-                const toDelete = all.filter(r => r.projectId === projectId);
-                toDelete.forEach(r => store.delete(r.key));
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            };
-            request.onerror = () => reject(request.error);
-        });
+    async function uploadProjectFile(projectId, file) {
+        if (!storage) init();
+        const fileRef = storage.ref().child(`projects/${projectId}/${file.name}`);
+        await fileRef.put(file);
+        const downloadURL = await fileRef.getDownloadURL();
+        return { name: file.name, url: downloadURL, size: file.size, mime: file.type };
     }
 
     async function saveProjectFolder(projectId, fileList) {
         const files = Array.from(fileList);
         if (!files.length) throw new Error('Нет файлов');
         
-        await deleteProjectFiles(projectId);
-        
-        const db = await openDB();
-        
-        // Сохраняем каждый файл в отдельной транзакции (медленнее, но надёжнее)
-        for (const file of files) {
-            const buffer = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(reader.error);
-                reader.readAsArrayBuffer(file);
-            });
-            
-            // Отдельная транзакция для каждого файла
-            const tx = db.transaction(STORE, 'readwrite');
-            const store = tx.objectStore(STORE);
-            
-            await new Promise((resolve, reject) => {
-                const req = store.put({
-                    key: key(projectId, file.name),
-                    projectId: projectId,
-                    name: file.name,
-                    mime: file.type || 'application/octet-stream',
-                    size: file.size,
-                    data: buffer
-                });
-                req.onerror = () => reject(req.error);
-                req.onsuccess = () => resolve();
-                tx.onerror = () => reject(tx.error);
-                tx.oncomplete = () => resolve();
-            });
+        // Берём только ПЕРВЫЙ файл (ZIP или любой другой)
+        const file = files[0];
+        const uploaded = await uploadProjectFile(projectId, file);
+        return { fileCount: 1, files: [uploaded] };
+    }
+
+    async function deleteProjectFiles(projectId) {
+        if (!storage) init();
+        const projects = getProjects();
+        const project = projects.find(p => p.id === projectId);
+        if (project && project.files) {
+            for (const file of project.files) {
+                try {
+                    const fileRef = storage.refFromURL(file.url);
+                    await fileRef.delete();
+                } catch (e) { console.warn('Не удалось удалить файл:', file.name); }
+            }
         }
-        
-        return { fileCount: files.length };
     }
 
-    async function listProjectFiles(projectId) {
-        const db = await openDB();
-        const tx = db.transaction(STORE, 'readonly');
-        const store = tx.objectStore(STORE);
-        
-        return new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => {
-                const all = request.result || [];
-                const filtered = all.filter(r => r.projectId === projectId);
-                resolve(filtered);
-            };
-            request.onerror = () => reject(request.error);
-        });
+    function listProjectFiles(projectId) {
+        const projects = getProjects();
+        const project = projects.find(p => p.id === projectId);
+        return Promise.resolve(project?.files || []);
     }
 
-    async function getFileRecord(projectId, fileName) {
-        const db = await openDB();
-        const tx = db.transaction(STORE, 'readonly');
-        const store = tx.objectStore(STORE);
-        
-        return new Promise((resolve, reject) => {
-            const request = store.get(key(projectId, fileName));
-            request.onsuccess = () => resolve(request.result || null);
-            request.onerror = () => reject(request.error);
-        });
+    function getFileRecord(projectId, fileName) {
+        const projects = getProjects();
+        const project = projects.find(p => p.id === projectId);
+        const file = project?.files?.find(f => f.name === fileName);
+        return Promise.resolve(file || null);
     }
 
-    function downloadRecord(record) {
-        if (!record || !record.data) {
-            alert('Файл не найден');
-            return;
-        }
-        const blob = new Blob([record.data], { type: record.mime });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = record.name;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 500);
+    function downloadRecord(fileRecord) {
+        if (fileRecord?.url) window.open(fileRecord.url, '_blank');
+        else alert('Ссылка на файл не найдена');
     }
 
     function formatSize(bytes) {
