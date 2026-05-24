@@ -25,51 +25,151 @@
         }
         h1 { text-align: center; color: #0a3f6f; font-size: 2rem; margin-bottom: 0.5rem; }
         .sub { text-align: center; color: #2c5a7a; margin-bottom: 2rem; }
+        
+        /* СТИЛЬ КАРТОЧЕК КАК РАНЬШЕ */
         .project-list {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 1.5rem;
         }
-        .project-item {
+        .project-card {
             background: rgba(255, 255, 255, 0.8);
-            border-radius: 32px;
+            border-radius: 48px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
+            transition: 0.3s;
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 40px -15px rgba(0, 0, 0, 0.25);
+        }
+        .project-header {
+            position: relative;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            background-color: #cce8f5;
+        }
+        .project-header .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
             padding: 1rem;
+        }
+        .project-header h2 {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        .project-details {
+            padding: 1.5rem;
+        }
+        .info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        .info-badge {
+            background: rgba(10, 63, 111, 0.15);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #0a3f6f;
+            font-weight: 500;
+        }
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .description {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 28px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #1e2f3e;
+            line-height: 1.4;
+        }
+        .files-list {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 28px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .file-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 0.5rem;
         }
-        .project-info {
-            flex: 1;
-        }
-        .project-title {
-            font-weight: bold;
-            color: #0a3f6f;
-        }
-        .project-subject {
-            font-size: 0.8rem;
-            color: #2c5a7a;
-        }
-        .project-actions button {
+        .download-btn {
             background: #0a3f6f;
             color: white;
             border: none;
-            padding: 0.4rem 1rem;
+            padding: 0.3rem 1rem;
             border-radius: 40px;
             cursor: pointer;
-            margin-left: 0.5rem;
+            font-size: 0.8rem;
         }
-        .project-actions button.approve { background: #2e7d64; }
-        .project-actions button.reject { background: #e94560; }
-        .empty-state { text-align: center; padding: 3rem; background: rgba(255,255,255,0.5); border-radius: 48px; }
-        .back-link { display: block; text-align: center; margin-top: 2rem; color: #0a3f6f; text-decoration: none; }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+        .btn-approve {
+            background: #2e7d64;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 60px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-reject {
+            background: #e94560;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 60px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255,255,255,0.5);
+            border-radius: 48px;
+            color: #0a3f6f;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 2rem;
+            color: #0a3f6f;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        @media (max-width: 700px) {
+            .project-header h2 { font-size: 1.2rem; }
+            .action-buttons { justify-content: center; }
+        }
     </style>
 </head>
 <body>
 <div class="glass-moderate">
     <h1>🛡 Панель модерации</h1>
-    <div class="sub">Проекты, ожидающие проверки</div>
+    <div class="sub">Проверь проект перед публикацией</div>
     <div id="moderatorContent"></div>
     <a href="index.html" class="back-link">← На главную</a>
 </div>
@@ -79,72 +179,133 @@
         window.location.href = 'index.html';
     }
 
+    let projects = [];
+    let currentIndex = 0;
+
     async function loadProjects() {
         const allProjects = ProjectStorage.getProjects();
-        const pending = allProjects.filter(p => p.status === 'pending');
-        
-        const container = document.getElementById('moderatorContent');
-        
-        if (pending.length === 0) {
-            container.innerHTML = '<div class="empty-state">✅ Нет проектов на модерации.</div>';
+        projects = allProjects.filter(p => p.status !== 'approved');
+        if (projects.length === 0) {
+            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации. Все проверены!</div>';
             return;
         }
-        
-        let html = '<div class="project-list">';
-        for (const proj of pending) {
-            html += `
-                <div class="project-item">
-                    <div class="project-info">
-                        <div class="project-title">${escapeHtml(proj.title)}</div>
-                        <div class="project-subject">📚 ${escapeHtml(proj.subject || 'Без предмета')}</div>
-                        <div style="font-size:0.8rem;">${escapeHtml(proj.description?.substring(0, 100) || '—')}</div>
-                    </div>
-                    <div class="project-actions">
-                        <button class="approve" onclick="approveProject('${proj.id}')">✅ Одобрить</button>
-                        <button class="reject" onclick="rejectProject('${proj.id}')">❌ Отклонить</button>
-                        <button onclick="downloadProject('${proj.id}')">📥 Скачать</button>
-                    </div>
-                </div>
-            `;
-        }
-        html += '</div>';
-        container.innerHTML = html;
+        currentIndex = 0;
+        renderCurrentProject();
     }
 
-    window.approveProject = async (id) => {
-        const projects = ProjectStorage.getProjects();
-        const index = projects.findIndex(p => p.id === id);
-        if (index !== -1) {
-            projects[index].status = 'approved';
-            ProjectStorage.saveProjects(projects);
-            alert('✅ Проект одобрен!');
-            loadProjects();
-        }
-    };
+    async function renderCurrentProject() {
+        const project = projects[currentIndex];
+        if (!project) return;
 
-    window.rejectProject = async (id) => {
-        if (confirm('Удалить проект?')) {
-            await ProjectStorage.deleteProject(id);
-            alert('❌ Проект удалён');
-            loadProjects();
-        }
-    };
-
-    window.downloadProject = async (id) => {
-        const files = await ProjectStorage.listProjectFiles(id);
-        if (files.length === 1) {
-            ProjectStorage.downloadRecord(files[0]);
-        } else if (files.length > 1) {
-            alert(`В проекте несколько файлов. Скачивается первый.`);
-            ProjectStorage.downloadRecord(files[0]);
+        const files = await ProjectStorage.listProjectFiles(project.id);
+        
+        let filesHtml = '';
+        if (files.length === 0) {
+            filesHtml = '<div style="color:#e94560;">⚠️ Файлы не загружены</div>';
         } else {
-            alert('Файлы не найдены');
+            filesHtml = files.map(f => `
+                <div class="file-item">
+                    <span>📄 ${escapeHtml(f.name)} (${ProjectStorage.formatSize(f.size)})</span>
+                    <button class="download-btn" onclick="downloadFile('${project.id}', '${escapeAttr(f.name)}')">📥 Скачать</button>
+                </div>
+            `).join('');
+        }
+
+        const html = `
+            <div class="project-card">
+                <div class="project-header" style="background-image: url('${project.thumb || 'https://placehold.co/600x300/8fc9e8/white?text=Нет+обложки'}');">
+                    <div class="overlay">
+                        <h2>${escapeHtml(project.title)}</h2>
+                    </div>
+                </div>
+                <div class="project-details">
+                    <div class="info-row">
+                        <span class="info-badge">📚 ${escapeHtml(project.subject || 'Без предмета')}</span>
+                        <div class="color-preview" style="background: ${project.color || '#cce8f5'};"></div>
+                    </div>
+                    <div class="description">
+                        <strong>📝 Описание:</strong><br>
+                        ${escapeHtml(project.description || '—')}
+                    </div>
+                    <div class="files-list">
+                        <h4>📁 Файлы проекта (${files.length})</h4>
+                        ${filesHtml}
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-approve" onclick="approveProject()">✅ Одобрить</button>
+                        <button class="btn-reject" onclick="rejectProject()">❌ Отклонить</button>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 1rem; gap: 1rem;">
+                <button onclick="prevProject()" ${currentIndex === 0 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">← Назад</button>
+                <span style="background: rgba(10,63,111,0.8); color: white; padding: 0.5rem 1rem; border-radius: 40px;">${currentIndex + 1} / ${projects.length}</span>
+                <button onclick="nextProject()" ${currentIndex === projects.length - 1 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">Вперед →</button>
+            </div>
+        `;
+        
+        document.getElementById('moderatorContent').innerHTML = html;
+    }
+
+    function prevProject() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderCurrentProject();
+        }
+    }
+    function nextProject() {
+        if (currentIndex < projects.length - 1) {
+            currentIndex++;
+            renderCurrentProject();
+        }
+    }
+
+    window.downloadFile = async (projectId, fileName) => {
+        const record = await ProjectStorage.getFileRecord(projectId, fileName);
+        if (record) {
+            ProjectStorage.downloadRecord(record);
+        } else {
+            alert('Не удалось найти файл для скачивания');
+        }
+    };
+
+    window.approveProject = async () => {
+        const proj = projects[currentIndex];
+        proj.status = 'approved';
+        ProjectStorage.saveProjects(projects);
+        projects = projects.filter(p => p.status !== 'approved');
+        if (projects.length === 0) {
+            document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации. Все проверены!</div>';
+        } else {
+            currentIndex = Math.min(currentIndex, projects.length - 1);
+            renderCurrentProject();
+        }
+        alert(`✅ Проект "${proj.title}" опубликован!`);
+    };
+
+    window.rejectProject = async () => {
+        const proj = projects[currentIndex];
+        if (confirm(`Удалить проект "${proj.title}"?`)) {
+            await ProjectStorage.deleteProject(proj.id);
+            projects.splice(currentIndex, 1);
+            if (projects.length === 0) {
+                document.getElementById('moderatorContent').innerHTML = '<div class="empty-state">✅ Нет проектов на модерации. Все проверены!</div>';
+            } else {
+                if (currentIndex >= projects.length) currentIndex = projects.length - 1;
+                renderCurrentProject();
+            }
+            alert(`❌ Проект "${proj.title}" удалён.`);
         }
     };
 
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, (m) => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+
+    function escapeAttr(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     loadProjects();
