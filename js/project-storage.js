@@ -28,7 +28,6 @@ const ProjectStorage = (function () {
     async function saveProjectFolder(projectId, fileList) {
         const files = Array.from(fileList);
         if (!files.length) throw new Error('Нет файлов');
-
         const uploaded = [];
         for (const file of files) {
             const result = await uploadProjectFile(projectId, file);
