@@ -2,39 +2,21 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 3;
+    const DB_VERSION = 4;
 
-    async function openDB() {
-        // Если старая база с меньшей версией — удаляем её
-        try {
+    function openDB() {
+        return new Promise((resolve, reject) => {
             const req = indexedDB.open(DB_NAME, DB_VERSION);
-            return new Promise((resolve, reject) => {
-                req.onerror = () => reject(req.error);
-                req.onsuccess = () => resolve(req.result);
-                req.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (db.objectStoreNames.contains(STORE)) {
-                        db.deleteObjectStore(STORE);
-                    }
-                    db.createObjectStore(STORE, { keyPath: 'key' });
-                };
-            });
-        } catch (err) {
-            // Если ошибка версии — удаляем базу и пробуем снова
-            return new Promise((resolve, reject) => {
-                const deleteReq = indexedDB.deleteDatabase(DB_NAME);
-                deleteReq.onsuccess = () => {
-                    const newReq = indexedDB.open(DB_NAME, DB_VERSION);
-                    newReq.onerror = () => reject(newReq.error);
-                    newReq.onsuccess = () => resolve(newReq.result);
-                    newReq.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        db.createObjectStore(STORE, { keyPath: 'key' });
-                    };
-                };
-                deleteReq.onerror = () => reject(deleteReq.error);
-            });
-        }
+            req.onerror = () => reject(req.error);
+            req.onsuccess = () => resolve(req.result);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (db.objectStoreNames.contains(STORE)) {
+                    db.deleteObjectStore(STORE);
+                }
+                db.createObjectStore(STORE, { keyPath: 'key' });
+            };
+        });
     }
 
     function key(id, name) {
@@ -78,9 +60,8 @@ const ProjectStorage = (function () {
         await deleteProjectFiles(projectId);
         
         const db = await openDB();
-        const tx = db.transaction(STORE, 'readwrite');
-        const store = tx.objectStore(STORE);
         
+        // Сохраняем каждый файл в отдельной транзакции (медленнее, но надёжнее)
         for (const file of files) {
             const buffer = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -89,20 +70,25 @@ const ProjectStorage = (function () {
                 reader.readAsArrayBuffer(file);
             });
             
-            store.put({
-                key: key(projectId, file.name),
-                projectId: projectId,
-                name: file.name,
-                mime: file.type || 'application/octet-stream',
-                size: file.size,
-                data: buffer
+            // Отдельная транзакция для каждого файла
+            const tx = db.transaction(STORE, 'readwrite');
+            const store = tx.objectStore(STORE);
+            
+            await new Promise((resolve, reject) => {
+                const req = store.put({
+                    key: key(projectId, file.name),
+                    projectId: projectId,
+                    name: file.name,
+                    mime: file.type || 'application/octet-stream',
+                    size: file.size,
+                    data: buffer
+                });
+                req.onerror = () => reject(req.error);
+                req.onsuccess = () => resolve();
+                tx.onerror = () => reject(tx.error);
+                tx.oncomplete = () => resolve();
             });
         }
-        
-        await new Promise((resolve, reject) => {
-            tx.oncomplete = resolve;
-            tx.onerror = () => reject(tx.error);
-        });
         
         return { fileCount: files.length };
     }
