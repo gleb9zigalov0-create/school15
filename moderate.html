@@ -145,7 +145,7 @@
             </div>
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="prevProject()" ${currentIndex === 0 ? 'disabled' : ''}>← Назад</button>
-                <span style="background: rgba(10,63,111,0.8); color: white; padding: 0.5rem 1rem; border-radius: 40px;">${currentIndex + 1} / ${projects.length}</span>
+                <span>${currentIndex + 1} / ${projects.length}</span>
                 <button class="nav-btn" onclick="nextProject()" ${currentIndex === projects.length - 1 ? 'disabled' : ''}>Вперед →</button>
             </div>
         `;
@@ -185,12 +185,12 @@
             if (currentIndex >= projects.length) currentIndex = projects.length - 1;
             renderCurrentProject();
         }
-        alert(`✅ Проект "${proj.title}" одобрен! Он появится на главной странице проектов.`);
+        alert(`✅ Проект "${proj.title}" одобрен!`);
     };
 
     window.deleteProject = async () => {
         const proj = projects[currentIndex];
-        if (confirm(`Удалить проект "${proj.title}" навсегда?`)) {
+        if (confirm(`Удалить проект "${proj.title}"?`)) {
             await ProjectStorage.deleteProject(proj.id);
             projects.splice(currentIndex, 1);
             if (projects.length === 0) {
