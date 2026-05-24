@@ -2,8 +2,8 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const MAX_TOTAL = 80 * 1024 * 1024;
-    const MAX_FILE = 20 * 1024 * 1024;
+    const MAX_TOTAL = 300 * 1024 * 1024;   // 300 МБ
+    const MAX_FILE = 100 * 1024 * 1024;    // 100 МБ на файл
     const IMG = /\.(png|jpe?g|gif|webp|bmp|svg)$/i;
 
     function openDB() {
@@ -69,50 +69,70 @@ const ProjectStorage = (function () {
 
         let total = 0;
         for (const f of files) {
-            if (f.size > MAX_FILE) throw new Error('Файл слишком большой (макс. 20 МБ): ' + f.name);
+            if (f.size > MAX_FILE) throw new Error(`Файл слишком большой (макс. 100 МБ): ${f.name}`);
             total += f.size;
         }
-        if (total > MAX_TOTAL) throw new Error('Папка слишком большая (макс. ~80 МБ)');
+        if (total > MAX_TOTAL) throw new Error('Папка слишком большая (макс. ~300 МБ)');
 
         await deleteProjectFiles(projectId);
         const db = await openDB();
         const folderName = (files[0].webkitRelativePath || '').split('/')[0] || 'Проект';
         let thumb = null;
 
-        const tx = db.transaction(STORE, 'readwrite');
-        const store = tx.objectStore(STORE);
-        for (const file of files) {
-            const path = file.webkitRelativePath || file.name;
-            store.put({
-                key: key(projectId, path),
-                projectId,
-                path,
-                name: file.name,
-                mime: file.type || 'application/octet-stream',
-                size: file.size,
-                data: await readBuffer(file)
-            });
-            if (!thumb && IMG.test(file.name)) {
-                try { thumb = await readDataUrl(file); } catch (e) {}
+        return new Promise(async (resolve, reject) => {
+            const tx = db.transaction(STORE, 'readwrite');
+            const store = tx.objectStore(STORE);
+            
+            let errorOccurred = false;
+            
+            tx.oncomplete = () => {
+                if (!errorOccurred) {
+                    resolve({ folderName, fileCount: files.length, totalSize: total, thumb });
+                }
+            };
+            tx.onerror = (e) => {
+                errorOccurred = true;
+                reject(tx.error);
+            };
+            
+            for (const file of files) {
+                try {
+                    const path = file.webkitRelativePath || file.name;
+                    const buffer = await readBuffer(file);
+                    store.put({
+                        key: key(projectId, path),
+                        projectId,
+                        path,
+                        name: file.name,
+                        mime: file.type || 'application/octet-stream',
+                        size: file.size,
+                        data: buffer
+                    });
+                    
+                    if (!thumb && IMG.test(file.name)) {
+                        try { thumb = await readDataUrl(file); } catch (e) {}
+                    }
+                } catch (err) {
+                    errorOccurred = true;
+                    reject(err);
+                    return;
+                }
             }
-        }
-        await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
-
-        if (thumb) {
-            const tx2 = db.transaction(STORE, 'readwrite');
-            tx2.objectStore(STORE).put({
-                key: key(projectId, '__thumb__'),
-                projectId,
-                path: '__thumb__',
-                name: 'thumb',
-                mime: 'image/thumb',
-                size: 0,
-                dataUrl: thumb
-            });
-            await new Promise((res, rej) => { tx2.oncomplete = res; tx2.onerror = () => rej(tx2.error); });
-        }
-
-        return { folderName, fileCount: files.length, totalSize: total };
+            
+            if (thumb) {
+                store.put({
+                    key: key(projectId, '__thumb__'),
+                    projectId,
+                    path: '__thumb__',
+                    name: 'thumb',
+                    mime: 'image/thumb',
+                    size: 0,
+                    dataUrl: thumb
+                });
+            }
+            
+            tx.commit();
+        });
     }
 
     async function listProjectFiles(projectId) {
@@ -152,6 +172,13 @@ const ProjectStorage = (function () {
         setTimeout(() => URL.revokeObjectURL(url), 500);
     }
 
+    async function downloadProjectAsZip(projectId) {
+        const files = await listProjectFiles(projectId);
+        if (!files.length) throw new Error('Нет файлов для скачивания');
+        const record = await getFileRecord(projectId, files[0].path);
+        if (record) downloadRecord(record);
+    }
+
     function formatSize(bytes) {
         if (bytes < 1024) return bytes + ' Б';
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' КБ';
@@ -160,6 +187,7 @@ const ProjectStorage = (function () {
 
     return {
         getProjects, saveProjects, saveProjectFolder, deleteProjectFiles,
-        listProjectFiles, getThumbDataUrl, getFileRecord, downloadRecord, formatSize
+        listProjectFiles, getThumbDataUrl, getFileRecord, downloadRecord, downloadProjectAsZip,
+        formatSize
     };
 })();
