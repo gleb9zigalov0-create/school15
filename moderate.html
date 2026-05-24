@@ -26,11 +26,11 @@
         h1 { text-align: center; color: #0a3f6f; font-size: 2rem; margin-bottom: 0.5rem; }
         .sub { text-align: center; color: #2c5a7a; margin-bottom: 2rem; }
         
-        /* Стиль карточек как раньше */
+        /* СТИЛЬ КАРТОЧЕК КАК РАНЬШЕ */
         .project-list {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 1.5rem;
         }
         .project-card {
             background: rgba(255, 255, 255, 0.8);
@@ -238,9 +238,9 @@
                 </div>
             </div>
             <div style="display: flex; justify-content: space-between; margin-top: 1rem; gap: 1rem;">
-                <button class="nav-btn" onclick="prevProject()" ${currentIndex === 0 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">← Назад</button>
+                <button onclick="prevProject()" ${currentIndex === 0 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">← Назад</button>
                 <span style="background: rgba(10,63,111,0.8); color: white; padding: 0.5rem 1rem; border-radius: 40px;">${currentIndex + 1} / ${projects.length}</span>
-                <button class="nav-btn" onclick="nextProject()" ${currentIndex === projects.length - 1 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">Вперед →</button>
+                <button onclick="nextProject()" ${currentIndex === projects.length - 1 ? 'disabled style="opacity:0.5"' : ''} style="background: rgba(10,63,111,0.7); border: none; color: white; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer;">Вперед →</button>
             </div>
         `;
         
