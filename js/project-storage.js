@@ -2,7 +2,7 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 9;
+    const DB_VERSION = 10;
 
     function openDB() {
         return new Promise((resolve, reject) => {
@@ -113,6 +113,7 @@ const ProjectStorage = (function () {
         if (index !== -1) {
             projects[index].status = 'approved';
             saveProjects(projects);
+            console.log('Проект одобрен:', projects[index].title);
         }
     }
 
