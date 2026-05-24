@@ -2,7 +2,7 @@ const ProjectStorage = (function () {
     const DB_NAME = 'school15_projects_db';
     const STORE = 'files';
     const META_KEY = 'school15_projects';
-    const DB_VERSION = 7;
+    const DB_VERSION = 8;
 
     function openDB() {
         return new Promise((resolve, reject) => {
@@ -107,24 +107,30 @@ const ProjectStorage = (function () {
         setTimeout(() => URL.revokeObjectURL(url), 500);
     }
 
-    // 🔥 ФУНКЦИЯ УДАЛЕНИЯ
     async function deleteProject(projectId) {
-        // 1. Удаляем файлы из IndexedDB
+        console.log('deleteProject вызван для', projectId);
         const files = await listProjectFiles(projectId);
+        console.log('Найдено файлов:', files.length);
+        
         const db = await openDB();
         const tx = db.transaction(STORE, 'readwrite');
         const store = tx.objectStore(STORE);
+        
         for (const file of files) {
             store.delete(key(projectId, file.name));
         }
+        
         await new Promise((resolve, reject) => {
-            tx.oncomplete = resolve;
+            tx.oncomplete = () => {
+                console.log('Файлы удалены из IndexedDB');
+                resolve();
+            };
             tx.onerror = () => reject(tx.error);
         });
         
-        // 2. Удаляем метаданные из localStorage
         const projects = getProjects().filter(p => p.id !== projectId);
         saveProjects(projects);
+        console.log('Проект удалён из localStorage');
     }
 
     function formatSize(bytes) {
@@ -140,7 +146,7 @@ const ProjectStorage = (function () {
         listProjectFiles,
         getFileRecord,
         downloadRecord,
-        deleteProject,   // ← ЭКСПОРТИРУЕМ
+        deleteProject,
         formatSize
     };
 })();
