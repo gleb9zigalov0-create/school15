@@ -48,7 +48,6 @@
             font-weight: 500;
         }
 
-        /* СЕТКА ПРОЕКТОВ */
         .projects-grid {
             display: flex;
             flex-wrap: wrap;
@@ -57,7 +56,6 @@
             margin: 2rem 0;
         }
 
-        /* КАРТОЧКА ПРОЕКТА */
         .project-card {
             width: 280px;
             background: rgba(255, 255, 255, 0.8);
@@ -212,7 +210,7 @@
             <div class="project-card" data-id="${proj.id}" onclick="viewProject('${proj.id}')">
                 <div class="card-image" style="background-image: url('${proj.thumb || 'https://placehold.co/300x160/8fc9e8/white?text=Нет+фото'}'); background-size: cover; background-position: center;"></div>
                 <div class="card-info">
-                    <div class="type-badge">${proj.type || 'Проект'}</div>
+                    <div class="type-badge">${escapeHtml(proj.type || 'Проект')}</div>
                     <h3>${escapeHtml(proj.title)}</h3>
                     <p>${escapeHtml(proj.description?.substring(0, 70) || '')}${proj.description?.length > 70 ? '...' : ''}</p>
                 </div>
